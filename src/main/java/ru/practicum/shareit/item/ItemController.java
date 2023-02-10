@@ -45,8 +45,8 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public Collection<ItemDto> getSearch(@RequestHeader("X-Sharer-User-Id") Long userId
-            , @RequestParam(defaultValue = "unread") String text) {
+    public Collection<ItemDto> getSearch(@RequestHeader("X-Sharer-User-Id") Long userId,
+                @RequestParam(defaultValue = "unread") String text) {
         return itemService.getSearch(text);
     }
 
