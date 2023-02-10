@@ -11,7 +11,7 @@ public interface UserRepository {
 
     User add(User user);
 
-    User change(Long id, User user) ;
+    User change(Long id, User user);
 
     User deleteById(Long id);
 }

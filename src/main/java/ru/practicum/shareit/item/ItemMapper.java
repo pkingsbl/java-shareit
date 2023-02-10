@@ -20,7 +20,7 @@ public class ItemMapper {
 
     public static Collection<ItemDto> mapToItemDto(Collection<Item> items) {
         List<ItemDto> itemDtos = new ArrayList<>();
-        for(Item item : items) {
+        for (Item item : items) {
             itemDtos.add(mapToItemDto(item));
         }
         return itemDtos;

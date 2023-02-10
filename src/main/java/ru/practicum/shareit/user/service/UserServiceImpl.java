@@ -18,7 +18,7 @@ import java.util.Objects;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
     private final UserRepository repository;
 
     @Override
@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService{
     public List<UserDto> getAll() {
         Collection<User> users =  repository.getAll();
         List<UserDto> userDtos = new ArrayList<>();
-        for(User user : users) {
+        for (User user : users) {
             userDtos.add(UserMapper.mapToItemDto(user));
         }
         return userDtos;
@@ -56,7 +56,7 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public UserDto getById(Long id) {
-        User user= repository.getById(id);
+        User user = repository.getById(id);
         if (user == null) {
             throw new NotFoundException("Пользователь не найден");
         }

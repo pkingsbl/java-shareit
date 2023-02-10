@@ -37,8 +37,8 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public UserDto change(@PathVariable @Min(value = 1, message = "id должен быть больше 0") Long id
-            , @RequestBody User user) {
+    public UserDto change(@PathVariable @Min(value = 1, message = "id должен быть больше 0") Long id,
+                @RequestBody User user) {
         return userService.change(id, user);
     }
 

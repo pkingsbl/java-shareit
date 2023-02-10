@@ -27,15 +27,15 @@ public class ItemController {
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto change(@RequestHeader("X-Sharer-User-Id") Long userId
-            , @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId
-            , @RequestBody ItemDto itemDto) {
+    public ItemDto change(@RequestHeader("X-Sharer-User-Id") Long userId,
+                @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId,
+                @RequestBody ItemDto itemDto) {
         return itemService.change(userId, itemId, itemDto);
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto getById(@RequestHeader("X-Sharer-User-Id") Long userId
-            , @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId) {
+    public ItemDto getById(@RequestHeader("X-Sharer-User-Id") Long userId,
+                @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId) {
         return itemService.getById(itemId);
     }
 
@@ -51,8 +51,8 @@ public class ItemController {
     }
 
     @DeleteMapping("/{itemId}")
-    public void deleteById(@RequestHeader("X-Sharer-User-Id") Long userId
-            , @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId) {
+    public void deleteById(@RequestHeader("X-Sharer-User-Id") Long userId,
+                @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId) {
         itemService.deleteById(userId, itemId);
     }
 

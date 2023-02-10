@@ -20,7 +20,7 @@ import static ru.practicum.shareit.item.ItemMapper.mapToItemDto;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ItemServiceImpl implements ItemService{
+public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
 

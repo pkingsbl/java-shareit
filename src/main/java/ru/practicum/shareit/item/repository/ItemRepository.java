@@ -10,6 +10,7 @@ public interface ItemRepository {
     Item add(Item item);
 
     Item change(Long itemId, ItemDto itemDto);
+
     Item getById(Long itemId);
 
     Collection<Item> get(Long userId);

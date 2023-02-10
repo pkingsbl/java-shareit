@@ -28,7 +28,7 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public User change(Long id, User user) {
         if (users.containsKey(id)) {
-            if(user.getEmail() != null) {
+            if (user.getEmail() != null) {
                 users.get(id).setEmail(user.getEmail());
             }
             if (user.getName() != null) {
