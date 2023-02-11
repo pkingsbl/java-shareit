@@ -5,15 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
-
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
+import static ru.practicum.shareit.user.UserMapper.mapToUserDto;
 
 @Slf4j
 @Service
@@ -23,50 +20,49 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto add(User user) {
-        log.info("Add user " + user.toString());
-        if (repository.getAll().stream().anyMatch(userRepository -> userRepository.getEmail().equals(user.getEmail()))) {
-            throw new ConflictException("Email пользователей совпадает");
-        }
-        return UserMapper.mapToItemDto(repository.add(user));
+        log.info("Add user {}", user.toString());
+        checkEmail(user, null);
+        return mapToUserDto(repository.add(user));
     }
 
     @Override
     public UserDto change(Long id, User user) {
-        log.info("Change user " + id + ": " + user.toString());
-        if (repository.getAll().stream().anyMatch(userRepository -> userRepository.getEmail().equals(user.getEmail())
-                && !Objects.equals(userRepository.getId(), id))) {
-            throw new ConflictException("Email пользователей совпадает");
-        }
+        log.info("Change user {}: {}", id, user.toString());
+        checkEmail(user, id);
         User userChange = repository.change(id, user);
-        if (userChange == null) {
-            throw new NotFoundException("Пользователь не найден");
-        }
-        return UserMapper.mapToItemDto(userChange);
+        checkUser(userChange);
+        return mapToUserDto(userChange);
     }
 
     @Override
-    public List<UserDto> getAll() {
-        Collection<User> users =  repository.getAll();
-        List<UserDto> userDtos = new ArrayList<>();
-        for (User user : users) {
-            userDtos.add(UserMapper.mapToItemDto(user));
-        }
-        return userDtos;
+    public Collection<UserDto> getAll() {
+        return mapToUserDto(repository.getAll());
     }
 
     @Override
     public UserDto getById(Long id) {
         User user = repository.getById(id);
-        if (user == null) {
-            throw new NotFoundException("Пользователь не найден");
-        }
-        return UserMapper.mapToItemDto(repository.getById(id));
+        checkUser(user);
+        return mapToUserDto(repository.getById(id));
     }
 
     @Override
     public void deleteById(Long id) {
         if (repository.deleteById(id) == null) {
             throw new NotFoundException("Пользователь не найден");
+        }
+    }
+
+    private static void checkUser(User userChange) {
+        if (userChange == null) {
+            throw new NotFoundException("Пользователь не найден");
+        }
+    }
+
+    private void checkEmail(User user, Long id) {
+        if (repository.getAll().stream().anyMatch(userRepository -> userRepository.getEmail().equals(user.getEmail())
+                && !Objects.equals(userRepository.getId(), id))) {
+            throw new ConflictException("Email пользователей совпадает");
         }
     }
 

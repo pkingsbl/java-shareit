@@ -57,13 +57,4 @@ public class ErrorHandler {
         );
     }
 
-    @ExceptionHandler(Throwable.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleThrowable(final Throwable e) {
-        log.warn("Произошла непредвиденная ошибка: " + e.getMessage());
-        return new ErrorResponse(
-                e.getMessage()
-        );
-    }
-
 }

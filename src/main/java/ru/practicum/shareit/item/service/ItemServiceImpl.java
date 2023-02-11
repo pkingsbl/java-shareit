@@ -10,10 +10,8 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
-
 import java.util.Collection;
 import java.util.Objects;
-
 import static ru.practicum.shareit.item.ItemMapper.mapToItem;
 import static ru.practicum.shareit.item.ItemMapper.mapToItemDto;
 
@@ -26,7 +24,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto add(Long userId, ItemDto itemDto) {
-        log.info("User: " + userId + ". Add item " + itemDto.toString());
+        log.info("User: {}. Add item {}",userId,itemDto.toString());
         User user = checkUser(userId);
         Item item = mapToItem(itemDto);
         item.setOwner(user);
@@ -36,7 +34,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto change(Long userId, Long itemId, ItemDto itemDto) {
-        log.info("User: " + userId + ". Change item " + itemDto.toString());
+        log.info("User: {}. Change item {}", userId, itemDto.toString());
         checkUser(userId);
         Item item = checkItem(itemId);
         if (!Objects.equals(item.getOwner().getId(), userId)) {
@@ -47,27 +45,27 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto getById(Long itemId) {
-        log.info("Get item by id: " + itemId);
+        log.info("Get item by id: {}", itemId);
         Item item = checkItem(itemId);
         return mapToItemDto(item);
     }
 
     @Override
     public Collection<ItemDto> getAll(Long userId) {
-        log.info("Get all items user: " + userId);
+        log.info("Get all items user: {}", userId);
         checkUser(userId);
         return mapToItemDto(itemRepository.get(userId));
     }
 
     @Override
     public Collection<ItemDto> getSearch(String text) {
-        log.info("Search: " + text);
+        log.info("Search: '{}'", text);
         return mapToItemDto(itemRepository.getSearch(text.toLowerCase()));
     }
 
     @Override
     public void deleteById(Long userId, Long itemId) {
-        log.info("User: " + userId + ". Delete item " + itemId);
+        log.info("User: {}. Delete item {}", userId, itemId);
         checkUser(userId);
         Item item = checkItem(itemId);
         if (!Objects.equals(item.getOwner().getId(), userId)) {

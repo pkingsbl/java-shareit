@@ -5,15 +5,10 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
-
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import java.util.Collection;
 
-/**
- * TODO Sprint add-controllers.
- *  для управления пользователями — создания, редактирования и просмотра
- */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/users")
