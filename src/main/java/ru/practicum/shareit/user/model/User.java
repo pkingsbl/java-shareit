@@ -1,22 +1,25 @@
 package ru.practicum.shareit.user.model;
 
 import lombok.Data;
-
+import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 
-/**
- * TODO Sprint add-controllers.
- * id — уникальный идентификатор пользователя;
- * name — имя или логин пользователя;
- * email — адрес электронной почты (учтите, что два пользователя не могут иметь одинаковый адрес электронной почты).
- */
 @Data
+@Entity
+@Table(name = "users")
 public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @NotBlank
+    @Column(nullable = false)
     private String name;
+
     @Email
     @NotBlank
+    @Column(unique = true, length = 253, nullable = false)
     private String email;
 }

@@ -13,7 +13,7 @@ import java.util.Collection;
 @RequestMapping("/items")
 public class ItemController {
 
-    private final ItemService itemService;/**/
+    private final ItemService itemService;
     private static final String HEADER_ID = "X-Sharer-User-Id";
 
     @PostMapping

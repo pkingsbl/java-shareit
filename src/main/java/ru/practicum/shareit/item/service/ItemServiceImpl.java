@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -12,35 +13,51 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import static ru.practicum.shareit.item.ItemMapper.mapToItem;
 import static ru.practicum.shareit.item.ItemMapper.mapToItemDto;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
 
     @Override
+    @Transactional
     public ItemDto add(Long userId, ItemDto itemDto) {
         log.info("User: {}. Add item {}",userId,itemDto.toString());
+
         User user = checkUser(userId);
         Item item = mapToItem(itemDto);
         item.setOwner(user);
 
-        return mapToItemDto(itemRepository.add(item));
+        return mapToItemDto(itemRepository.save(item));
     }
 
     @Override
+    @Transactional
     public ItemDto change(Long userId, Long itemId, ItemDto itemDto) {
         log.info("User: {}. Change item {}", userId, itemDto.toString());
         checkUser(userId);
-        Item item = checkItem(itemId);
-        if (!Objects.equals(item.getOwner().getId(), userId)) {
+        Item itemChange = checkItem(itemId);
+        if (!Objects.equals(itemChange.getOwner().getId(), userId)) {
             throw new ForbiddenException("Редактировать вещь может только её владелец!");
         }
-        return mapToItemDto(itemRepository.change(itemId, itemDto));
+        if (itemDto.getName() != null) {
+            itemChange.setName(itemDto.getName());
+        }
+        if (itemDto.getDescription() != null) {
+            itemChange.setDescription(itemDto.getDescription());
+        }
+        if (itemDto.getAvailable() != null) {
+            itemChange.setAvailable(itemDto.getAvailable());
+        }
+        return mapToItemDto(itemRepository.save(itemChange));
     }
 
     @Override
@@ -54,16 +71,18 @@ public class ItemServiceImpl implements ItemService {
     public Collection<ItemDto> getAll(Long userId) {
         log.info("Get all items user: {}", userId);
         checkUser(userId);
-        return mapToItemDto(itemRepository.get(userId));
+        return mapToItemDto(itemRepository.findAllByOwnerId((userId)));
     }
 
     @Override
     public Collection<ItemDto> getSearch(String text) {
         log.info("Search: '{}'", text);
-        return mapToItemDto(itemRepository.getSearch(text.toLowerCase()));
+        Collection<Item> items = itemRepository.findAllByNameOrDescriptionContainingIgnoreCase(text, text);
+        return mapToItemDto(items.stream().filter(Item::getAvailable).collect(Collectors.toList()));
     }
 
     @Override
+    @Transactional
     public void deleteById(Long userId, Long itemId) {
         log.info("User: {}. Delete item {}", userId, itemId);
         checkUser(userId);
@@ -75,18 +94,18 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private User checkUser(Long userId) {
-        User user = userRepository.getById(userId);
-        if (user == null) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
             throw new NotFoundException("Пользователь не найден");
         }
-        return user;
+        return user.get();
     }
 
     private Item checkItem(Long itemId) {
-        Item item = itemRepository.getById(itemId);
-        if (item == null) {
+        Optional<Item> item = itemRepository.findById(itemId);
+        if (item.isEmpty()) {
             throw new NotFoundException("Вещь не найдена");
         }
-        return item;
+        return item.get();
     }
 }

@@ -14,32 +14,32 @@ import java.util.Collection;
 @RequestMapping(path = "/users")
 public class UserController {
 
-    private final UserService userService;
+    private final UserService userServiceImpl;
 
     @GetMapping()
     public Collection<UserDto> getAll() {
-        return userService.getAll();
+        return userServiceImpl.getAll();
     }
 
     @GetMapping("/{id}")
     public UserDto getById(@PathVariable @Min(value = 1, message = "id должен быть больше 0") Long id) {
-        return userService.getById(id);
+        return userServiceImpl.getById(id);
     }
 
     @PostMapping
     public UserDto add(@Valid @RequestBody User user) {
-        return userService.add(user);
+        return userServiceImpl.add(user);
     }
 
     @PatchMapping("/{id}")
     public UserDto change(@PathVariable @Min(value = 1, message = "id должен быть больше 0") Long id,
                 @RequestBody User user) {
-        return userService.change(id, user);
+        return userServiceImpl.change(id, user);
     }
 
     @DeleteMapping("/{id}")
     public void deleteById(@PathVariable @Min(value = 1, message = "id должен быть больше 0") Long id) {
-        userService.deleteById(id);
+        userServiceImpl.deleteById(id);
     }
 
 }
