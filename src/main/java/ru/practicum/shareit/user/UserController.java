@@ -1,13 +1,13 @@
 package ru.practicum.shareit.user;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
+import java.util.Collection;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
-import java.util.Collection;
+import lombok.RequiredArgsConstructor;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.user.service.UserService;
 
 @RestController
 @RequiredArgsConstructor

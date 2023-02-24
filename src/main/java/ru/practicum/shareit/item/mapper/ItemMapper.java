@@ -1,11 +1,10 @@
-package ru.practicum.shareit.item;
+package ru.practicum.shareit.item.mapper;
 
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.model.Item;
-
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.dto.ItemDto;
 
 public class ItemMapper {
     public static ItemDto mapToItemDto(Item item) {
@@ -14,8 +13,6 @@ public class ItemMapper {
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
-                .lastBooking(item.getLastBooking())
-                .nextBooking(item.getNextBooking())
                 .build();
     }
 
@@ -33,8 +30,6 @@ public class ItemMapper {
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
-                .lastBooking(item.getLastBooking())
-                .nextBooking(item.getNextBooking())
                 .build();
     }
 }

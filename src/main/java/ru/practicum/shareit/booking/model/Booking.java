@@ -1,29 +1,14 @@
 package ru.practicum.shareit.booking.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.Builder;
+import javax.persistence.*;
+import java.time.LocalDateTime;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
-import javax.persistence.*;
-import javax.validation.constraints.Future;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
-
-/**
- * TODO Sprint add-bookings.
- * id — уникальный идентификатор бронирования;
- * start — дата и время начала бронирования;
- * end — дата и время конца бронирования;
- * item — вещь, которую пользователь бронирует;
- * booker — пользователь, который осуществляет бронирование;
- * status — статус бронирования. Может принимать одно из следующих значений: WAITING — новое бронирование, ожидает одобрения, APPROVED —
- * бронирование подтверждено владельцем, REJECTED — бронирование отклонено владельцем, CANCELED — бронирование отменено создателем.
-
- */
 @Data
 @Entity
 @NoArgsConstructor

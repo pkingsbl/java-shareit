@@ -1,25 +1,13 @@
 package ru.practicum.shareit.booking;
 
+import java.util.Collection;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.State;
-import ru.practicum.shareit.booking.model.Status;
+import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.service.BookingService;
-import ru.practicum.shareit.booking.service.BookingServiceImpl;
 
-import javax.validation.Valid;
-import java.util.Collection;
-
-/**
-
- *
- * Получение списка бронирований для всех вещей текущего пользователя.
- * Эндпоинт — GET /bookings/owner?state={state}.
- * Этот запрос имеет смысл для владельца хотя бы одной вещи.
- * Работа параметра state аналогична его работе в предыдущем сценарии.
- */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/bookings")

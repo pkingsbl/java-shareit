@@ -1,26 +1,31 @@
 package ru.practicum.shareit.item.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.exception.ForbiddenException;
-import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepository;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Collection;
+import java.time.LocalDateTime;
+import lombok.extern.slf4j.Slf4j;
 import java.util.stream.Collectors;
-
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.model.Status;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ForbiddenException;
+import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.repository.UserRepository;
+import ru.practicum.shareit.item.repository.CommentRepository;
+import ru.practicum.shareit.booking.repository.BookingRepository;
+import org.springframework.transaction.annotation.Transactional;
+import static ru.practicum.shareit.item.mapper.ItemMapper.mapToItem;
+import static ru.practicum.shareit.item.mapper.ItemMapper.mapToItemDto;
 import static ru.practicum.shareit.booking.BookingMapper.mapToBookingDto;
-import static ru.practicum.shareit.item.ItemMapper.mapToItem;
-import static ru.practicum.shareit.item.ItemMapper.mapToItemDto;
+import static ru.practicum.shareit.item.mapper.CommentMapper.mapToComment;
+import static ru.practicum.shareit.item.mapper.CommentMapper.mapToCommentDto;
 
 @Slf4j
 @Service
@@ -30,6 +35,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
 
     @Override
     @Transactional
@@ -68,23 +74,26 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto getById(Long userId, Long itemId) {
         log.info("Get item by id: {}", itemId);
         Item item = checkItem(itemId);
+        ItemDto itemDto = mapToItemDto(item);
         if (Objects.equals(item.getOwner().getId(), userId)) {
-            item.setLastBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartAsc(item.getId())));
-            item.setNextBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartDesc(item.getId())));
+            itemDto.setLastBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartAsc(item.getId())));
+            itemDto.setNextBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartDesc(item.getId())));
         }
-        return mapToItemDto(item);
+        itemDto.setComments(mapToCommentDto(commentRepository.findAllByItemId(itemId)));
+        return itemDto;
     }
 
     @Override
     public Collection<ItemDto> getAll(Long userId) {
         log.info("Get all items user: {}", userId);
         checkUser(userId);
-        Collection <Item> items = itemRepository.findAllByOwnerId(userId);
+        Collection<ItemDto> items = mapToItemDto(itemRepository.findAllByOwnerId(userId));
         items.forEach(item -> {
                 item.setLastBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartAsc(item.getId())));
                 item.setNextBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartDesc(item.getId())));
+                item.setComments(mapToCommentDto(commentRepository.findAllByItemId(item.getId())));
         });
-        return mapToItemDto(items);
+        return items;
     }
 
     @Override
@@ -104,6 +113,21 @@ public class ItemServiceImpl implements ItemService {
             throw new ForbiddenException("Удалять вещь может только её владелец!");
         }
         itemRepository.deleteById(itemId);
+    }
+
+    @Override
+    @Transactional
+    public CommentDto postComment(Long userId, Long itemId, CommentDto comment) {
+        checkBooking(userId, itemId);
+        comment.setCreated(LocalDateTime.now());
+        return mapToCommentDto(commentRepository.save(mapToComment(comment, checkUser(userId), checkItem(itemId))));
+    }
+
+    private void checkBooking(Long userId, Long itemId) {
+        if (bookingRepository.findAllByBookerIdAndItemIdAndStatusEqualsAndEndIsBefore(userId, itemId, Status.APPROVED,
+                LocalDateTime.now()).isEmpty()) {
+            throw new ValidationException("Вы можете оставлять комментарий только на арендованные вещи");
+        }
     }
 
     private User checkUser(Long userId) {

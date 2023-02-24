@@ -1,17 +1,11 @@
 package ru.practicum.shareit.booking.dto;
 
-import lombok.Builder;
 import lombok.Data;
-import ru.practicum.shareit.booking.model.Status;
-import ru.practicum.shareit.user.model.User;
-
-import javax.validation.constraints.Future;
-import java.time.LocalDate;
+import lombok.Builder;
 import java.time.LocalDateTime;
+import javax.validation.constraints.Future;
+import ru.practicum.shareit.booking.model.Status;
 
-/**
- * TODO Sprint add-bookings.
- */
 @Data
 @Builder
 public class BookingDto {
