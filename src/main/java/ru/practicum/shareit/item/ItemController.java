@@ -3,6 +3,7 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -31,7 +32,7 @@ public class ItemController {
     @GetMapping("/{itemId}")
     public ItemDto getById(@RequestHeader(HEADER_ID) Long userId,
                 @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId) {
-        return itemService.getById(itemId);
+        return itemService.getById(userId, itemId);
     }
 
     @GetMapping()

@@ -1,7 +1,6 @@
 package ru.practicum.shareit.item.service;
 
 import ru.practicum.shareit.item.dto.ItemDto;
-
 import java.util.Collection;
 
 public interface ItemService {
@@ -9,7 +8,7 @@ public interface ItemService {
 
     ItemDto change(Long userId, Long itemId, ItemDto itemDto);
 
-    ItemDto getById(Long itemId);
+    ItemDto getById(Long userId, Long itemId);
 
     Collection<ItemDto> getAll(Long userId);
 

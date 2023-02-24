@@ -1,24 +1,14 @@
 package ru.practicum.shareit.item.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.user.model.User;
-
 import javax.persistence.*;
+import lombok.Data;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.booking.model.Booking;
 
-
-/**
- * TODO Sprint add-controllers.
- * id — уникальный идентификатор вещи;
- * name — краткое название;
- * description — развёрнутое описание;
- * available — статус о том, доступна или нет вещь для аренды;
- * owner — владелец вещи;
- * request — если вещь была создана по запросу другого пользователя, то в этом поле будет храниться ссылка на соответствующий запрос.
- */
 @Data
 @Entity
 @Table(name = "items")
@@ -45,8 +35,11 @@ public class Item {
     private User owner;
 
     @Transient
-//    @ManyToOne
-//    @JoinColumn(name = "request_id", referencedColumnName = "id")
-    private Booking request;
+    @JoinColumn(name = "booking_id", referencedColumnName = "id")
+    private BookingDto lastBooking;
+
+    @Transient
+    @JoinColumn(name = "booking_id", referencedColumnName = "id")
+    private BookingDto nextBooking;
 
 }

@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -16,6 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static ru.practicum.shareit.booking.BookingMapper.mapToBookingDto;
 import static ru.practicum.shareit.item.ItemMapper.mapToItem;
 import static ru.practicum.shareit.item.ItemMapper.mapToItemDto;
 
@@ -26,6 +29,7 @@ import static ru.practicum.shareit.item.ItemMapper.mapToItemDto;
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
 
     @Override
     @Transactional
@@ -61,9 +65,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto getById(Long itemId) {
+    public ItemDto getById(Long userId, Long itemId) {
         log.info("Get item by id: {}", itemId);
         Item item = checkItem(itemId);
+        if (Objects.equals(item.getOwner().getId(), userId)) {
+            item.setLastBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartAsc(item.getId())));
+            item.setNextBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartDesc(item.getId())));
+        }
         return mapToItemDto(item);
     }
 
@@ -71,7 +79,12 @@ public class ItemServiceImpl implements ItemService {
     public Collection<ItemDto> getAll(Long userId) {
         log.info("Get all items user: {}", userId);
         checkUser(userId);
-        return mapToItemDto(itemRepository.findAllByOwnerId((userId)));
+        Collection <Item> items = itemRepository.findAllByOwnerId(userId);
+        items.forEach(item -> {
+                item.setLastBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartAsc(item.getId())));
+                item.setNextBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartDesc(item.getId())));
+        });
+        return mapToItemDto(items);
     }
 
     @Override
