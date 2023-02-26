@@ -78,11 +78,7 @@ public class ItemServiceImpl implements ItemService {
         Item item = checkItem(itemId);
         ItemDto itemDto = mapToItemDto(item);
         if (Objects.equals(item.getOwner().getId(), userId)) {
-            Booking lastBooking = bookingRepository.findFirstByItemIdOrderByStartAsc(itemDto.getId());
-            Booking nextBooking = bookingRepository.findFirstByItemIdOrderByStartDesc(itemDto.getId());
-
-            itemDto.setLastBooking(mapToBookingDto(lastBooking));
-            itemDto.setNextBooking(mapToBookingDto(nextBooking));
+            findLastAndNextBooking(itemDto);
         }
         Collection<Comment> comments = commentRepository.findAllByItemId(itemId);
         itemDto.setComments(mapToCommentDto(comments));
@@ -95,12 +91,8 @@ public class ItemServiceImpl implements ItemService {
         checkUser(userId);
         Collection<ItemDto> items = mapToItemDto(itemRepository.findAllByOwnerId(userId));
         items.forEach(itemDto -> {
-            Booking lastBooking = bookingRepository.findFirstByItemIdOrderByStartAsc(itemDto.getId());
-            Booking nextBooking = bookingRepository.findFirstByItemIdOrderByStartDesc(itemDto.getId());
+            findLastAndNextBooking(itemDto);
             Collection<Comment> comments = commentRepository.findAllByItemId(itemDto.getId());
-
-            itemDto.setLastBooking(mapToBookingDto(lastBooking));
-            itemDto.setNextBooking(mapToBookingDto(nextBooking));
             itemDto.setComments(mapToCommentDto(comments));
         });
         return items;
@@ -134,12 +126,11 @@ public class ItemServiceImpl implements ItemService {
         return mapToCommentDto(commentRepository.save(comment));
     }
 
-    private ItemDto findLastAndNextBooking(ItemDto itemDto) {
+    private void findLastAndNextBooking(ItemDto itemDto) {
         Booking lastBooking = bookingRepository.findFirstByItemIdOrderByStartAsc(itemDto.getId());
         Booking nextBooking = bookingRepository.findFirstByItemIdOrderByStartDesc(itemDto.getId());
         itemDto.setLastBooking(mapToBookingDto(lastBooking));
         itemDto.setNextBooking(mapToBookingDto(nextBooking));
-        return itemDto;
     }
 
     private void checkBooking(Long userId, Long itemId) {
