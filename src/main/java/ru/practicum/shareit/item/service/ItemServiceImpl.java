@@ -8,7 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -76,8 +78,10 @@ public class ItemServiceImpl implements ItemService {
         Item item = checkItem(itemId);
         ItemDto itemDto = mapToItemDto(item);
         if (Objects.equals(item.getOwner().getId(), userId)) {
-            itemDto.setLastBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartAsc(item.getId())));
-            itemDto.setNextBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartDesc(item.getId())));
+            Booking lastBooking = bookingRepository.findFirstByItemIdOrderByStartAsc(item.getId());
+            Booking nextBooking = bookingRepository.findFirstByItemIdOrderByStartDesc(item.getId());
+            itemDto.setLastBooking(mapToBookingDto(lastBooking));
+            itemDto.setNextBooking(mapToBookingDto(nextBooking));
         }
         itemDto.setComments(mapToCommentDto(commentRepository.findAllByItemId(itemId)));
         return itemDto;
@@ -89,9 +93,13 @@ public class ItemServiceImpl implements ItemService {
         checkUser(userId);
         Collection<ItemDto> items = mapToItemDto(itemRepository.findAllByOwnerId(userId));
         items.forEach(item -> {
-                item.setLastBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartAsc(item.getId())));
-                item.setNextBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartDesc(item.getId())));
-                item.setComments(mapToCommentDto(commentRepository.findAllByItemId(item.getId())));
+            Booking lastBooking = bookingRepository.findFirstByItemIdOrderByStartAsc(item.getId());
+            Booking nextBooking = bookingRepository.findFirstByItemIdOrderByStartDesc(item.getId());
+            Collection<Comment> comments = commentRepository.findAllByItemId(item.getId());
+
+            item.setLastBooking(mapToBookingDto(lastBooking));
+            item.setNextBooking(mapToBookingDto(nextBooking));
+            item.setComments(mapToCommentDto(comments));
         });
         return items;
     }
