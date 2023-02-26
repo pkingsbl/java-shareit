@@ -8,7 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -76,10 +78,10 @@ public class ItemServiceImpl implements ItemService {
         Item item = checkItem(itemId);
         ItemDto itemDto = mapToItemDto(item);
         if (Objects.equals(item.getOwner().getId(), userId)) {
-            itemDto.setLastBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartAsc(item.getId())));
-            itemDto.setNextBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartDesc(item.getId())));
+            findLastAndNextBooking(itemDto);
         }
-        itemDto.setComments(mapToCommentDto(commentRepository.findAllByItemId(itemId)));
+        Collection<Comment> comments = commentRepository.findAllByItemId(itemId);
+        itemDto.setComments(mapToCommentDto(comments));
         return itemDto;
     }
 
@@ -88,10 +90,10 @@ public class ItemServiceImpl implements ItemService {
         log.info("Get all items user: {}", userId);
         checkUser(userId);
         Collection<ItemDto> items = mapToItemDto(itemRepository.findAllByOwnerId(userId));
-        items.forEach(item -> {
-                item.setLastBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartAsc(item.getId())));
-                item.setNextBooking(mapToBookingDto(bookingRepository.findFirstByItemIdOrderByStartDesc(item.getId())));
-                item.setComments(mapToCommentDto(commentRepository.findAllByItemId(item.getId())));
+        items.forEach(itemDto -> {
+            findLastAndNextBooking(itemDto);
+            Collection<Comment> comments = commentRepository.findAllByItemId(itemDto.getId());
+            itemDto.setComments(mapToCommentDto(comments));
         });
         return items;
     }
@@ -117,10 +119,18 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public CommentDto postComment(Long userId, Long itemId, CommentDto comment) {
+    public CommentDto postComment(Long userId, Long itemId, CommentDto commentDto) {
         checkBooking(userId, itemId);
-        comment.setCreated(LocalDateTime.now());
-        return mapToCommentDto(commentRepository.save(mapToComment(comment, checkUser(userId), checkItem(itemId))));
+        commentDto.setCreated(LocalDateTime.now());
+        Comment comment = mapToComment(commentDto, checkUser(userId), checkItem(itemId));
+        return mapToCommentDto(commentRepository.save(comment));
+    }
+
+    private void findLastAndNextBooking(ItemDto itemDto) {
+        Booking lastBooking = bookingRepository.findFirstByItemIdOrderByStartAsc(itemDto.getId());
+        Booking nextBooking = bookingRepository.findFirstByItemIdOrderByStartDesc(itemDto.getId());
+        itemDto.setLastBooking(mapToBookingDto(lastBooking));
+        itemDto.setNextBooking(mapToBookingDto(nextBooking));
     }
 
     private void checkBooking(Long userId, Long itemId) {

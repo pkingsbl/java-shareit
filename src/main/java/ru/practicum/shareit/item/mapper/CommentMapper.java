@@ -1,8 +1,7 @@
 package ru.practicum.shareit.item.mapper;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.stream.Collectors;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.item.model.Comment;
@@ -19,11 +18,7 @@ public class CommentMapper {
     }
 
     public static Collection<CommentDto> mapToCommentDto(Collection<Comment> comments) {
-        List<CommentDto> commentDtos = new ArrayList<>();
-        for (Comment comment : comments) {
-            commentDtos.add(mapToCommentDto(comment));
-        }
-        return commentDtos;
+        return comments.stream().map(CommentMapper::mapToCommentDto).collect(Collectors.toList());
     }
 
     public static Comment mapToComment(CommentDto comment, User user, Item item) {

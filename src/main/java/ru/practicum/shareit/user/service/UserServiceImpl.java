@@ -2,9 +2,8 @@ package ru.practicum.shareit.user.service;
 
 import java.util.Optional;
 import java.util.Collection;
-
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.dto.UserDto;
 import org.springframework.stereotype.Service;
