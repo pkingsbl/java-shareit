@@ -78,12 +78,14 @@ public class ItemServiceImpl implements ItemService {
         Item item = checkItem(itemId);
         ItemDto itemDto = mapToItemDto(item);
         if (Objects.equals(item.getOwner().getId(), userId)) {
-            Booking lastBooking = bookingRepository.findFirstByItemIdOrderByStartAsc(item.getId());
-            Booking nextBooking = bookingRepository.findFirstByItemIdOrderByStartDesc(item.getId());
+            Booking lastBooking = bookingRepository.findFirstByItemIdOrderByStartAsc(itemDto.getId());
+            Booking nextBooking = bookingRepository.findFirstByItemIdOrderByStartDesc(itemDto.getId());
+
             itemDto.setLastBooking(mapToBookingDto(lastBooking));
             itemDto.setNextBooking(mapToBookingDto(nextBooking));
         }
-        itemDto.setComments(mapToCommentDto(commentRepository.findAllByItemId(itemId)));
+        Collection<Comment> comments = commentRepository.findAllByItemId(itemId);
+        itemDto.setComments(mapToCommentDto(comments));
         return itemDto;
     }
 
@@ -92,14 +94,14 @@ public class ItemServiceImpl implements ItemService {
         log.info("Get all items user: {}", userId);
         checkUser(userId);
         Collection<ItemDto> items = mapToItemDto(itemRepository.findAllByOwnerId(userId));
-        items.forEach(item -> {
-            Booking lastBooking = bookingRepository.findFirstByItemIdOrderByStartAsc(item.getId());
-            Booking nextBooking = bookingRepository.findFirstByItemIdOrderByStartDesc(item.getId());
-            Collection<Comment> comments = commentRepository.findAllByItemId(item.getId());
+        items.forEach(itemDto -> {
+            Booking lastBooking = bookingRepository.findFirstByItemIdOrderByStartAsc(itemDto.getId());
+            Booking nextBooking = bookingRepository.findFirstByItemIdOrderByStartDesc(itemDto.getId());
+            Collection<Comment> comments = commentRepository.findAllByItemId(itemDto.getId());
 
-            item.setLastBooking(mapToBookingDto(lastBooking));
-            item.setNextBooking(mapToBookingDto(nextBooking));
-            item.setComments(mapToCommentDto(comments));
+            itemDto.setLastBooking(mapToBookingDto(lastBooking));
+            itemDto.setNextBooking(mapToBookingDto(nextBooking));
+            itemDto.setComments(mapToCommentDto(comments));
         });
         return items;
     }
@@ -125,10 +127,19 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public CommentDto postComment(Long userId, Long itemId, CommentDto comment) {
+    public CommentDto postComment(Long userId, Long itemId, CommentDto commentDto) {
         checkBooking(userId, itemId);
-        comment.setCreated(LocalDateTime.now());
-        return mapToCommentDto(commentRepository.save(mapToComment(comment, checkUser(userId), checkItem(itemId))));
+        commentDto.setCreated(LocalDateTime.now());
+        Comment comment = mapToComment(commentDto, checkUser(userId), checkItem(itemId));
+        return mapToCommentDto(commentRepository.save(comment));
+    }
+
+    private ItemDto findLastAndNextBooking(ItemDto itemDto) {
+        Booking lastBooking = bookingRepository.findFirstByItemIdOrderByStartAsc(itemDto.getId());
+        Booking nextBooking = bookingRepository.findFirstByItemIdOrderByStartDesc(itemDto.getId());
+        itemDto.setLastBooking(mapToBookingDto(lastBooking));
+        itemDto.setNextBooking(mapToBookingDto(nextBooking));
+        return itemDto;
     }
 
     private void checkBooking(Long userId, Long itemId) {
