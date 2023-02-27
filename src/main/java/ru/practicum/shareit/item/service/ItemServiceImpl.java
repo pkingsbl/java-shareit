@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.service;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Collection;
@@ -127,10 +128,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void findLastAndNextBooking(ItemDto itemDto) {
-        Booking lastBooking = bookingRepository.findFirstByItemIdOrderByStartAsc(itemDto.getId());
-        Booking nextBooking = bookingRepository.findFirstByItemIdOrderByStartDesc(itemDto.getId());
-        itemDto.setLastBooking(mapToBookingDto(lastBooking));
-        itemDto.setNextBooking(mapToBookingDto(nextBooking));
+        List<Booking> bookings = bookingRepository.findAllByItemIdAndStatusOrderByStartAsc(itemDto.getId(), Status.APPROVED);
+        itemDto.setLastBooking(mapToBookingDto(bookings.size() > 0 ? bookings.get(0) : null));
+        itemDto.setNextBooking(mapToBookingDto(bookings.size() > 1 ? bookings.get(1) : null));
     }
 
     private void checkBooking(Long userId, Long itemId) {
