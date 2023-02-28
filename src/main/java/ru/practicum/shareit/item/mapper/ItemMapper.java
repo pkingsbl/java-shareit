@@ -1,11 +1,9 @@
-package ru.practicum.shareit.item;
+package ru.practicum.shareit.item.mapper;
 
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.model.Item;
-
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.stream.Collectors;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.dto.ItemDto;
 
 public class ItemMapper {
     public static ItemDto mapToItemDto(Item item) {
@@ -14,16 +12,11 @@ public class ItemMapper {
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
-                .request(item.getRequest())
                 .build();
     }
 
     public static Collection<ItemDto> mapToItemDto(Collection<Item> items) {
-        List<ItemDto> itemDtos = new ArrayList<>();
-        for (Item item : items) {
-            itemDtos.add(mapToItemDto(item));
-        }
-        return itemDtos;
+        return items.stream().map(ItemMapper::mapToItemDto).collect(Collectors.toList());
     }
 
     public static Item mapToItem(ItemDto item) {
@@ -32,7 +25,6 @@ public class ItemMapper {
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
-                .request(item.getRequest())
                 .build();
     }
 }

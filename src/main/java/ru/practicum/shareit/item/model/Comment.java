@@ -3,33 +3,33 @@ package ru.practicum.shareit.item.model;
 import lombok.Data;
 import lombok.Builder;
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import ru.practicum.shareit.user.model.User;
 
 @Data
 @Entity
-@Table(name = "items")
+@Table(name = "comments")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class Item {
+public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String name;
-
-    @Column(nullable = false)
-    private String description;
-
-    @Column(name = "is_available")
-    private Boolean available;
+    private String text;
 
     @ManyToOne
-    @JoinColumn(name = "owner_id", referencedColumnName = "id", nullable = false)
-    private User owner;
+    @JoinColumn(name = "item_id", referencedColumnName = "id", nullable = false)
+    private Item item;
 
+    @ManyToOne
+    @JoinColumn(name = "author_id", referencedColumnName = "id", nullable = false)
+    private User author;
+
+    private LocalDateTime created;
 }

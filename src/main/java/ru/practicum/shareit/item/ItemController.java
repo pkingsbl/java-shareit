@@ -1,19 +1,20 @@
 package ru.practicum.shareit.item;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.service.ItemService;
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
 import java.util.Collection;
+import javax.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import javax.validation.constraints.Min;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.service.ItemService;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/items")
 public class ItemController {
 
-    private final ItemService itemService;/**/
+    private final ItemService itemService;
     private static final String HEADER_ID = "X-Sharer-User-Id";
 
     @PostMapping
@@ -31,7 +32,7 @@ public class ItemController {
     @GetMapping("/{itemId}")
     public ItemDto getById(@RequestHeader(HEADER_ID) Long userId,
                 @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId) {
-        return itemService.getById(itemId);
+        return itemService.getById(userId, itemId);
     }
 
     @GetMapping()
@@ -49,6 +50,13 @@ public class ItemController {
     public void deleteById(@RequestHeader(HEADER_ID) Long userId,
                 @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId) {
         itemService.deleteById(userId, itemId);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto addComment(@RequestHeader(HEADER_ID) Long userId,
+                @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId,
+                @Valid @RequestBody CommentDto comment) {
+        return itemService.postComment(userId, itemId, comment);
     }
 
 }
