@@ -20,6 +20,7 @@ public class ItemDto {
     private Boolean available;
     private BookingDto lastBooking;
     private BookingDto nextBooking;
+    private Long requestId;
     private Collection<CommentDto> comments;
 
 }

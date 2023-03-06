@@ -4,10 +4,11 @@ import java.util.*;
 import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
-import ru.practicum.shareit.item.model.Item;
 import org.springframework.data.domain.Sort;
-import ru.practicum.shareit.user.model.User;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.PageRequest;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -64,30 +65,32 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<Booking> findAllByUser(Long userId, String state) {
-        User user = checkUser(userId);
+    public Collection<Booking> findAllByUser(Long userId, String state, Integer from, Integer size) {
+        checkUser(userId);
+        checkParam(from, size);
         LocalDateTime nowTime =  LocalDateTime.now();
-        Sort sortByDate = Sort.by(Sort.Direction.DESC, "start");
+        PageRequest pageRequest = PageRequest.of(from / size, size, Sort.by(Sort.Direction.DESC, "start"));
+
         Collection<Booking> bookings = new ArrayList<>();
         switch (state) {
             case "ALL":
-                bookings.addAll(bookingRepository.findAllByBookerId(userId, sortByDate));
+                bookings.addAll(bookingRepository.findAllByBookerId(userId, pageRequest));
                 break;
             case "CURRENT":
                 bookings.addAll(bookingRepository
-                        .findAllByBookerIdAndStartBeforeAndEndAfter(userId, nowTime, nowTime, sortByDate));
+                        .findAllByBookerIdAndStartBeforeAndEndAfter(userId, nowTime, nowTime, pageRequest));
                 break;
             case "PAST":
-                bookings.addAll(bookingRepository.findAllByBookerIdAndEndBefore(userId, nowTime, sortByDate));
+                bookings.addAll(bookingRepository.findAllByBookerIdAndEndBefore(userId, nowTime, pageRequest));
                 break;
             case "FUTURE":
-                bookings.addAll(bookingRepository.findAllByBookerIdAndStartAfter(userId, nowTime, sortByDate));
+                bookings.addAll(bookingRepository.findAllByBookerIdAndStartAfter(userId, nowTime, pageRequest));
                 break;
             case "WAITING":
-                bookings.addAll(bookingRepository.findAllByBookerIdAndStatus(userId, Status.WAITING, sortByDate));
+                bookings.addAll(bookingRepository.findAllByBookerIdAndStatus(userId, Status.WAITING, pageRequest));
                 break;
             case "REJECTED":
-                bookings.addAll(bookingRepository.findAllByBookerIdAndStatus(userId, Status.REJECTED, sortByDate));
+                bookings.addAll(bookingRepository.findAllByBookerIdAndStatus(userId, Status.REJECTED, pageRequest));
                 break;
             default:
                 throw new ValidationException("Unknown state: UNSUPPORTED_STATUS");
@@ -96,30 +99,31 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<Booking> findAllByOwner(Long userId, String state) {
-        User user = checkUser(userId);
+    public Collection<Booking> findAllByOwner(Long userId, String state, Integer from, Integer size) {
+        checkUser(userId);
+        checkParam(from, size);
         LocalDateTime nowTime =  LocalDateTime.now();
-        Sort sortByDate = Sort.by(Sort.Direction.DESC, "start");
+        PageRequest pageRequest = PageRequest.of(from / size, size, Sort.by(Sort.Direction.DESC, "start"));
         Collection<Booking> bookings = new ArrayList<>();
         switch (state) {
             case "ALL":
-                bookings.addAll(bookingRepository.findAllByItemOwnerId(userId, sortByDate));
+                bookings.addAll(bookingRepository.findAllByItemOwnerId(userId, pageRequest));
                 break;
             case "CURRENT":
                 bookings.addAll(bookingRepository
-                        .findAllByItemOwnerIdAndStartBeforeAndEndAfter(userId, nowTime, nowTime, sortByDate));
+                        .findAllByItemOwnerIdAndStartBeforeAndEndAfter(userId, nowTime, nowTime, pageRequest));
                 break;
             case "PAST":
-                bookings.addAll(bookingRepository.findAllByItemOwnerIdAndEndBefore(userId, nowTime, sortByDate));
+                bookings.addAll(bookingRepository.findAllByItemOwnerIdAndEndBefore(userId, nowTime, pageRequest));
                 break;
             case "FUTURE":
-                bookings.addAll(bookingRepository.findAllByItemOwnerIdAndStartAfter(userId, nowTime, sortByDate));
+                bookings.addAll(bookingRepository.findAllByItemOwnerIdAndStartAfter(userId, nowTime, pageRequest));
                 break;
             case "WAITING":
-                bookings.addAll(bookingRepository.findAllByItemOwnerIdAndStatus(userId, Status.WAITING, sortByDate));
+                bookings.addAll(bookingRepository.findAllByItemOwnerIdAndStatus(userId, Status.WAITING, pageRequest));
                 break;
             case "REJECTED":
-                bookings.addAll(bookingRepository.findAllByItemOwnerIdAndStatus(userId, Status.REJECTED, sortByDate));
+                bookings.addAll(bookingRepository.findAllByItemOwnerIdAndStatus(userId, Status.REJECTED, pageRequest));
                 break;
             default:
                 throw new ValidationException("Unknown state: UNSUPPORTED_STATUS");
@@ -177,6 +181,15 @@ public class BookingServiceImpl implements BookingService {
         }
         if (!item.getAvailable()) {
             throw new ValidationException("Вещь недоступна");
+        }
+    }
+
+    private void checkParam(Integer from, Integer size) {
+        if (from < 0) {
+            throw new ValidationException("Индекс первого элемента должен быть больше нуля");
+        }
+        if (size < 1) {
+            throw new ValidationException("Количество элементов для отображения должно быть больше 1");
         }
     }
 

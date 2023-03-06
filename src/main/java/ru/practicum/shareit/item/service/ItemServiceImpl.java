@@ -5,13 +5,17 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Collection;
 import java.time.LocalDateTime;
-import lombok.extern.slf4j.Slf4j;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -23,7 +27,6 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import org.springframework.transaction.annotation.Transactional;
 import static ru.practicum.shareit.item.mapper.ItemMapper.mapToItem;
 import static ru.practicum.shareit.item.mapper.ItemMapper.mapToItemDto;
 import static ru.practicum.shareit.booking.BookingMapper.mapToBookingDto;
@@ -39,14 +42,21 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
+
 
     @Override
     @Transactional
     public ItemDto add(Long userId, ItemDto itemDto) {
-        log.info("User: {}. Add item {}",userId,itemDto.toString());
+        log.info("User: {}. Add item {}", userId, itemDto.toString());
 
         User user = checkUser(userId);
         Item item = mapToItem(itemDto);
+        if (itemDto.getRequestId() != null) {
+            ItemRequest itemRequest = chackItemReq(itemDto.getRequestId());
+            item.setRequest(itemRequest);
+        }
+
         item.setOwner(user);
 
         return mapToItemDto(itemRepository.save(item));
@@ -70,6 +80,10 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() != null) {
             itemChange.setAvailable(itemDto.getAvailable());
         }
+        if (itemDto.getRequestId() != null) {
+            ItemRequest itemRequest = chackItemReq(itemDto.getRequestId());
+            itemChange.setRequest(itemRequest);
+        }
         return mapToItemDto(itemRepository.save(itemChange));
     }
 
@@ -87,10 +101,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDto> getAll(Long userId) {
+    public Collection<ItemDto> getAll(Long userId, Integer from, Integer size) {
         log.info("Get all items user: {}", userId);
         checkUser(userId);
-        Collection<ItemDto> items = mapToItemDto(itemRepository.findAllByOwnerId(userId));
+        checkParam(from, size);
+        Collection<ItemDto> items =
+                mapToItemDto(itemRepository.findAllByOwnerId(userId, PageRequest.of(from / size, size)));
         items.forEach(itemDto -> {
             findLastAndNextBooking(itemDto);
             Collection<Comment> comments = commentRepository.findAllByItemId(itemDto.getId());
@@ -100,9 +116,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDto> getSearch(String text) {
+    public Collection<ItemDto> getSearch(String text, Integer from, Integer size) {
         log.info("Search: '{}'", text);
-        Collection<Item> items = itemRepository.findAllByNameOrDescriptionContainingIgnoreCase(text, text);
+        checkParam(from, size);
+        Collection<Item> items = itemRepository
+                .findAllByNameOrDescriptionContainingIgnoreCase(text, text, PageRequest.of(from / size, size));
         return mapToItemDto(items.stream().filter(Item::getAvailable).collect(Collectors.toList()));
     }
 
@@ -155,4 +173,22 @@ public class ItemServiceImpl implements ItemService {
         }
         return item.get();
     }
+
+    private ItemRequest chackItemReq(Long requestId) {
+        Optional<ItemRequest> itemRequest = itemRequestRepository.findById(requestId);
+        if (itemRequest.isEmpty()) {
+            throw new NotFoundException("Запрос не найден");
+        }
+        return itemRequest.get();
+    }
+
+    private static void checkParam(Integer from, Integer size) {
+        if (from < 0) {
+            throw new ValidationException("Индекс первого элемента должен быть больше нуля");
+        }
+        if (size < 1) {
+            throw new ValidationException("Количество элементов для отображения должно быть больше 1");
+        }
+    }
+
 }

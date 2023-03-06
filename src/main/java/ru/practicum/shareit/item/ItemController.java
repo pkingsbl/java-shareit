@@ -24,38 +24,40 @@ public class ItemController {
 
     @PatchMapping("/{itemId}")
     public ItemDto change(@RequestHeader(HEADER_ID) Long userId,
-                @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId,
-                @RequestBody ItemDto itemDto) {
+                    @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId,
+                    @RequestBody ItemDto itemDto) {
         return itemService.change(userId, itemId, itemDto);
     }
 
     @GetMapping("/{itemId}")
     public ItemDto getById(@RequestHeader(HEADER_ID) Long userId,
-                @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId) {
+                    @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId) {
         return itemService.getById(userId, itemId);
     }
 
     @GetMapping()
-    public Collection<ItemDto> getAll(@RequestHeader(HEADER_ID) Long userId) {
-        return itemService.getAll(userId);
+    public Collection<ItemDto> getAll(@RequestHeader(HEADER_ID) Long userId,
+                    @RequestParam(defaultValue = "0") Integer from, @RequestParam(defaultValue = "5")  Integer size) {
+        return itemService.getAll(userId, from, size);
     }
 
     @GetMapping("/search")
     public Collection<ItemDto> getSearch(@RequestHeader(HEADER_ID) Long userId,
-                @RequestParam(defaultValue = "unread") String text) {
-        return itemService.getSearch(text);
+                    @RequestParam(defaultValue = "unread") String text,
+                    @RequestParam(defaultValue = "0") Integer from, @RequestParam(defaultValue = "5")  Integer size) {
+        return itemService.getSearch(text, from, size);
     }
 
     @DeleteMapping("/{itemId}")
     public void deleteById(@RequestHeader(HEADER_ID) Long userId,
-                @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId) {
+                    @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId) {
         itemService.deleteById(userId, itemId);
     }
 
     @PostMapping("/{itemId}/comment")
     public CommentDto addComment(@RequestHeader(HEADER_ID) Long userId,
-                @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId,
-                @Valid @RequestBody CommentDto comment) {
+                    @PathVariable @Min(value = 1, message = "id должен быть больше 0") Long itemId,
+                    @Valid @RequestBody CommentDto comment) {
         return itemService.postComment(userId, itemId, comment);
     }
 
