@@ -47,6 +47,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public Booking approve(Long bookingId, Long userId, Boolean approved) {
         log.info("User: {}. Add approve {} for booking {}", userId, approved, bookingId);
+        checkUser(userId);
         Booking booking = checkBooking(bookingId);
         checkOwner(booking.getItem(), userId);
         approveStatus(approved, booking);
@@ -56,6 +57,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking findById(Long bookingId, Long userId) {
+        checkUser(userId);
         Booking booking = checkBooking(bookingId);
         if (Objects.equals(booking.getBooker().getId(), userId)
                 || Objects.equals(booking.getItem().getOwner().getId(), userId)) {

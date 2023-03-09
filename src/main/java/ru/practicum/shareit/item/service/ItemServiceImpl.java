@@ -184,10 +184,10 @@ public class ItemServiceImpl implements ItemService {
 
     private static void checkParam(Integer from, Integer size) {
         if (from < 0) {
-            throw new ValidationException("Индекс первого элемента должен быть больше нуля");
+            throw new ValidationException("Индекс первого элемента должен быть больше или равен 0");
         }
         if (size < 1) {
-            throw new ValidationException("Количество элементов для отображения должно быть больше 1");
+            throw new ValidationException("Количество элементов для отображения должно быть больше 0");
         }
     }
 

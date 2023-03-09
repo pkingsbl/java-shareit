@@ -61,7 +61,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         checkParam(from, size);
         Sort sortByCreated = Sort.by(Sort.Direction.ASC, "created");
         Collection<ItemRequest> itemRequests =
-                itemRequestRepository.findAllByRequestorNotLike(user, PageRequest.of(from, size, sortByCreated));
+                itemRequestRepository.findAllByRequestorNotLike(user, PageRequest.of(from / size, size, sortByCreated));
         Collection<ItemRequestDto> itemRequestDtos = mapToItemRequestDto(itemRequests);
         itemRequestDtos.forEach(this::findItemsForRequest);
 
@@ -88,10 +88,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     private static void checkParam(Integer from, Integer size) {
         if (from < 0) {
-            throw new ValidationException("Индекс первого элемента должен быть больше нуля");
+            throw new ValidationException("Индекс первого элемента должен быть больше или равен 0");
         }
         if (size < 1) {
-            throw new ValidationException("Количество элементов для отображения должно быть больше 1");
+            throw new ValidationException("Количество элементов для отображения должно быть больше 0");
         }
     }
 
