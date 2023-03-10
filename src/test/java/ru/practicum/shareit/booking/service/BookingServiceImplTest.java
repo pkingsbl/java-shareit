@@ -60,16 +60,32 @@ class BookingServiceImplTest {
     public void beforeEach() {
         when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.ofNullable(userReturn));
-        when(itemRepository.findById(Mockito.anyLong()))
+        when(itemRepository.findById(itemReturn.getId()))
                 .thenReturn(Optional.ofNullable(itemReturn));
         when(bookingRepository.save(any(Booking.class)))
                 .thenReturn(bookingReturn);
-        when(bookingRepository.findById(Mockito.anyLong()))
+        when(bookingRepository.findById(bookingReturn.getId()))
                 .thenReturn(Optional.ofNullable(bookingReturn));
         when(bookingRepository.findAllByBookerId(Mockito.anyLong(), any(PageRequest.class)))
                 .thenReturn(List.of(bookingReturn));
         when(bookingRepository.findAllByItemOwnerId(Mockito.anyLong(), any(PageRequest.class)))
                 .thenReturn(List.of(bookingReturn));
+        when(bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfter(any(), any(), any(), any()))
+                .thenReturn(List.of());
+        when(bookingRepository.findAllByBookerIdAndEndBefore(any(), any(), any()))
+                .thenReturn(List.of());
+        when(bookingRepository.findAllByBookerIdAndStartAfter(any(), any(), any()))
+                .thenReturn(List.of());
+        when(bookingRepository.findAllByBookerIdAndStatus(any(), any(), any()))
+                .thenReturn(List.of());
+        when(bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfter(any(), any(), any(), any()))
+                .thenReturn(List.of());
+        when(bookingRepository.findAllByItemOwnerIdAndEndBefore(any(), any(), any()))
+                .thenReturn(List.of());
+        when(bookingRepository.findAllByItemOwnerIdAndStartAfter(any(), any(), any()))
+                .thenReturn(List.of());
+        when(bookingRepository.findAllByItemOwnerIdAndStatus(any(), any(), any()))
+                .thenReturn(List.of());
     }
 
     @AfterEach
@@ -146,6 +162,65 @@ class BookingServiceImplTest {
     }
 
     @Test
+    void findCurrentByUser() {
+        bookingService.findAllByUser(userReturn.getId(), State.CURRENT.toString(), 1, 10);
+
+        Mockito.verify(bookingRepository, Mockito.times(1))
+                .findAllByBookerIdAndStartBeforeAndEndAfter(any(), any(), any(), any());
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findById(userReturn.getId());
+    }
+
+    @Test
+    void findPastByUser() {
+        bookingService.findAllByUser(userReturn.getId(), State.PAST.toString(), 1, 10);
+
+        Mockito.verify(bookingRepository, Mockito.times(1))
+                .findAllByBookerIdAndEndBefore(any(), any(), any());
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findById(userReturn.getId());
+    }
+
+    @Test
+    void findFutureByUser() {
+        bookingService.findAllByUser(userReturn.getId(), State.FUTURE.toString(), 1, 10);
+
+        Mockito.verify(bookingRepository, Mockito.times(1))
+                .findAllByBookerIdAndStartAfter(any(), any(), any());
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findById(userReturn.getId());
+    }
+
+    @Test
+    void findWaitingByUser() {
+        bookingService.findAllByUser(userReturn.getId(), State.WAITING.toString(), 1, 10);
+
+        Mockito.verify(bookingRepository, Mockito.times(1))
+                .findAllByBookerIdAndStatus(any(), any(), any());
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findById(userReturn.getId());
+    }
+
+    @Test
+    void findRejectedByUser() {
+        bookingService.findAllByUser(userReturn.getId(), State.REJECTED.toString(), 1, 10);
+
+        Mockito.verify(bookingRepository, Mockito.times(1))
+                .findAllByBookerIdAndStatus(any(), any(), any());
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findById(userReturn.getId());
+    }
+
+    @Test
+    void findStateValidationExceptionByUser() {
+        final ValidationException exception = Assertions.assertThrows(
+                ValidationException.class,
+                () -> bookingService.findAllByUser(userReturn.getId(), "ValidationException", 1, 10));
+
+        Assertions.assertEquals("Unknown state: UNSUPPORTED_STATUS", exception.getMessage());
+    }
+
+    @Test
     void findAllByOwner() {
         Collection<Booking> bookings = bookingService.findAllByOwner(ownerReturn.getId(), State.ALL.toString(), 1, 10);
 
@@ -155,6 +230,65 @@ class BookingServiceImplTest {
                 .findAllByItemOwnerId(ownerReturn.getId(), PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "start")));
         Mockito.verify(userRepository, Mockito.times(1))
                 .findById(ownerReturn.getId());
+    }
+
+    @Test
+    void findCurrentByOwner() {
+        bookingService.findAllByOwner(ownerReturn.getId(), State.CURRENT.toString(), 1, 10);
+
+        Mockito.verify(bookingRepository, Mockito.times(1))
+                .findAllByItemOwnerIdAndStartBeforeAndEndAfter(any(), any(), any(), any());
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findById(ownerReturn.getId());
+    }
+
+    @Test
+    void findPastByOwner() {
+        bookingService.findAllByOwner(ownerReturn.getId(), State.PAST.toString(), 1, 10);
+
+        Mockito.verify(bookingRepository, Mockito.times(1))
+                .findAllByItemOwnerIdAndEndBefore(any(), any(), any());
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findById(ownerReturn.getId());
+    }
+
+    @Test
+    void findFutureByOwner() {
+        bookingService.findAllByOwner(ownerReturn.getId(), State.FUTURE.toString(), 1, 10);
+
+        Mockito.verify(bookingRepository, Mockito.times(1))
+                .findAllByItemOwnerIdAndStartAfter(any(), any(), any());
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findById(ownerReturn.getId());
+    }
+
+    @Test
+    void findWaitingByOwner() {
+        bookingService.findAllByOwner(ownerReturn.getId(), State.WAITING.toString(), 1, 10);
+
+        Mockito.verify(bookingRepository, Mockito.times(1))
+                .findAllByItemOwnerIdAndStatus(any(), any(), any());
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findById(ownerReturn.getId());
+    }
+
+    @Test
+    void findRejectedByOwner() {
+        bookingService.findAllByOwner(ownerReturn.getId(), State.REJECTED.toString(), 1, 10);
+
+        Mockito.verify(bookingRepository, Mockito.times(1))
+                .findAllByItemOwnerIdAndStatus(any(), any(), any());
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findById(ownerReturn.getId());
+    }
+
+    @Test
+    void findStateValidationExceptionByOwner() {
+        final ValidationException exception = Assertions.assertThrows(
+                ValidationException.class,
+                () -> bookingService.findAllByOwner(ownerReturn.getId(), "ValidationException", 1, 10));
+
+        Assertions.assertEquals("Unknown state: UNSUPPORTED_STATUS", exception.getMessage());
     }
 
     @Test
@@ -211,5 +345,56 @@ class BookingServiceImplTest {
                 () -> bookingService.approve(bookingReturn.getId(), ownerReturn.getId(), false));
 
         Assertions.assertEquals("Бронирование уже было подтверждено или отклонено ранее", exception.getMessage());
+    }
+
+    @Test
+    void findAllValidationParamFromException() {
+        final ValidationException exception = Assertions.assertThrows(
+                ValidationException.class,
+                () -> bookingService.findAllByUser(userReturn.getId(), State.ALL.toString(), -1, 10));
+
+        Assertions.assertEquals("Индекс первого элемента должен быть больше или равен 0", exception.getMessage());
+    }
+
+    @Test
+    void findAllValidationParamSizeException() {
+        final ValidationException exception = Assertions.assertThrows(
+                ValidationException.class,
+                () -> bookingService.findAllByUser(userReturn.getId(), State.ALL.toString(), 1, 0));
+
+        Assertions.assertEquals("Количество элементов для отображения должно быть больше 0", exception.getMessage());
+    }
+
+    @Test
+    void approveItemNotFound() {
+        final NotFoundException exception = Assertions.assertThrows(
+                NotFoundException.class,
+                () -> bookingService.approve(bookingReturn.getId(), 404L, true));
+
+        Assertions.assertEquals("Вещь не найдена", exception.getMessage());
+    }
+
+    @Test
+    void approveBookingNotFound() {
+        final NotFoundException exception = Assertions.assertThrows(
+                NotFoundException.class,
+                () -> bookingService.approve(404L, ownerReturn.getId(), true));
+
+        Assertions.assertEquals("Бронирование не найдено", exception.getMessage());
+    }
+
+    @Test
+    void addItemNotFound() {
+        BookingDto bookingDto = BookingDto.builder()
+                .start(LocalDate.now().atStartOfDay().plusDays(1))
+                .end(LocalDate.now().atStartOfDay().plusDays(2))
+                .itemId(404L)
+                .build();
+
+        final NotFoundException exception = Assertions.assertThrows(
+                NotFoundException.class,
+                () -> bookingService.add(userReturn.getId(), bookingDto));
+
+        Assertions.assertEquals("Вещь не найдена", exception.getMessage());
     }
 }
