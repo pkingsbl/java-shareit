@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item.service;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Collection;
 import java.time.LocalDateTime;
@@ -10,13 +9,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.booking.model.Status;
-import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ForbiddenException;
@@ -145,9 +144,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void findLastAndNextBooking(ItemDto itemDto) {
-        List<Booking> bookings = bookingRepository.findAllByItemIdAndStatusOrderByStartAsc(itemDto.getId(), Status.APPROVED);
-        itemDto.setLastBooking(mapToBookingDto(bookings.size() > 0 ? bookings.get(0) : null));
-        itemDto.setNextBooking(mapToBookingDto(bookings.size() > 1 ? bookings.get(1) : null));
+        Booking last = bookingRepository
+                .findFirstByItemIdAndStatusAndStartBeforeOrderByStartDesc(itemDto.getId(), Status.APPROVED, LocalDateTime.now());
+        Booking next = bookingRepository
+                .findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(itemDto.getId(), Status.APPROVED, LocalDateTime.now());
+        itemDto.setLastBooking(mapToBookingDto(last));
+        itemDto.setNextBooking(mapToBookingDto(next));
     }
 
     private void checkBooking(Long userId, Long itemId) {

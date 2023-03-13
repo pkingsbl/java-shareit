@@ -107,8 +107,8 @@ class ItemServiceImplTest {
                 .thenReturn(List.of(itemReturn));
         when(itemRepository.save(any(Item.class)))
                 .thenReturn(itemReturn);
-        when(bookingRepository.findAllByItemIdAndStatusOrderByStartAsc(itemReturn.getId(), Status.APPROVED))
-                .thenReturn(List.of(bookingReturn));
+        when(bookingRepository.findFirstByItemIdAndStatusAndStartBeforeOrderByStartDesc(any(), any(), any()))
+                .thenReturn(bookingReturn);
         when(bookingRepository.findAllByBookerIdAndItemIdAndStatusEqualsAndEndIsBefore(Mockito.anyLong(), Mockito.anyLong(), any(Status.class), any(LocalDateTime.class)))
                 .thenReturn(List.of(bookingReturn));
         when(commentRepository.save(any(Comment.class)))
@@ -162,7 +162,7 @@ class ItemServiceImplTest {
         Mockito.verify(itemRepository, Mockito.times(1))
                 .findById(itemReturn.getId());
         Mockito.verify(bookingRepository, Mockito.times(1))
-                .findAllByItemIdAndStatusOrderByStartAsc(itemDtoResponse.getId(), Status.APPROVED);
+                .findFirstByItemIdAndStatusAndStartBeforeOrderByStartDesc(any(), any(), any());
         Mockito.verify(commentRepository, Mockito.times(1))
                 .findAllByItemId(itemDtoResponse.getId());
     }
@@ -177,7 +177,7 @@ class ItemServiceImplTest {
         Mockito.verify(itemRepository, Mockito.times(1))
                 .findAllByOwnerId(userOwner.getId(), PageRequest.of(0, 10));
         Mockito.verify(bookingRepository, Mockito.times(itemDtoResponses.size()))
-                .findAllByItemIdAndStatusOrderByStartAsc(itemReturn.getId(), Status.APPROVED);
+                .findFirstByItemIdAndStatusAndStartBeforeOrderByStartDesc(any(), any(), any());
         Mockito.verify(commentRepository, Mockito.times(itemDtoResponses.size()))
                 .findAllByItemId(itemReturn.getId());
     }

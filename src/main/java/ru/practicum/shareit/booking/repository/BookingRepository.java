@@ -1,9 +1,7 @@
 package ru.practicum.shareit.booking.repository;
 
-import java.util.List;
 import java.util.Collection;
 import java.time.LocalDateTime;
-
 import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.model.Booking;
@@ -31,7 +29,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     Collection<Booking> findAllByItemOwnerIdAndStatus(Long userId, Status status, PageRequest of);
 
-    List<Booking> findAllByItemIdAndStatusOrderByStartAsc(Long id, Status status);
+    Booking findFirstByItemIdAndStatusAndStartBeforeOrderByStartDesc(Long id, Status status, LocalDateTime start);
+
+    Booking findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(Long id, Status status, LocalDateTime start);
 
     Collection<Booking> findAllByBookerIdAndItemIdAndStatusEqualsAndEndIsBefore(Long userId, Long itemId, Status approved, LocalDateTime now);
 

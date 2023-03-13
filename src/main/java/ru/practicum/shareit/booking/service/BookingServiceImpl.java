@@ -160,7 +160,10 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void checkDate(BookingDto booking) {
-        if (booking.getEnd().isBefore(booking.getStart())) {
+        if (booking.getStart() == null || booking.getEnd() == null) {
+            throw new ValidationException("Поле даты бронирования не может быть пустым");
+        }
+        if (!booking.getEnd().isAfter(booking.getStart())) {
             throw new ValidationException("Дата окончания бронирования раньше начала бронирования");
         }
     }

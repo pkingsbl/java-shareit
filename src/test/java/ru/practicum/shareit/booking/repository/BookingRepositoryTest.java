@@ -123,9 +123,16 @@ class BookingRepositoryTest {
     }
 
     @Test
-    void testFindAllByItemIdAndStatusOrderByStartAscIfStatusApproved() {
-        Collection<Booking> bookings = bookingRepository.findAllByItemIdAndStatusOrderByStartAsc(item.getId(), Status.APPROVED);
-        checkAsserts(bookings);
+    void testFindFirstByItemIdAndStatusAndStartAfterOrderByStartAscIfStatusApproved() {
+        Booking bookings = bookingRepository.findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(item.getId(), Status.APPROVED, dateTime);
+        assertNotNull(bookings);
+        assertEquals(bookings, booking);
+    }
+
+    @Test
+    void testFindFirstByItemIdAndStatusAndStartBeforeOrderByStartDescIfStatusApproved() {
+        Booking bookings = bookingRepository.findFirstByItemIdAndStatusAndStartBeforeOrderByStartDesc(item.getId(), Status.APPROVED, dateTime);
+        assertNull(bookings);
     }
 
     @Test
