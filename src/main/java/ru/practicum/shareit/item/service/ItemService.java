@@ -11,9 +11,9 @@ public interface ItemService {
 
     ItemDto getById(Long userId, Long itemId);
 
-    Collection<ItemDto> getAll(Long userId);
+    Collection<ItemDto> getAll(Long userId, Integer from, Integer size);
 
-    Collection<ItemDto> getSearch(String text);
+    Collection<ItemDto> getSearch(String text, Integer from, Integer size);
 
     void deleteById(Long userId, Long itemId);
 

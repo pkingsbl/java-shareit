@@ -1,21 +1,22 @@
 package ru.practicum.shareit.item.service;
 
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Collection;
 import java.time.LocalDateTime;
-import lombok.extern.slf4j.Slf4j;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.Status;
-import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.booking.model.Status;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.ValidationException;
@@ -23,7 +24,7 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import static ru.practicum.shareit.item.mapper.ItemMapper.mapToItem;
 import static ru.practicum.shareit.item.mapper.ItemMapper.mapToItemDto;
 import static ru.practicum.shareit.booking.BookingMapper.mapToBookingDto;
@@ -39,14 +40,21 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
+
 
     @Override
     @Transactional
     public ItemDto add(Long userId, ItemDto itemDto) {
-        log.info("User: {}. Add item {}",userId,itemDto.toString());
+        log.info("User: {}. Add item {}", userId, itemDto.toString());
 
         User user = checkUser(userId);
         Item item = mapToItem(itemDto);
+        if (itemDto.getRequestId() != null) {
+            ItemRequest itemRequest = chackItemReq(itemDto.getRequestId());
+            item.setRequest(itemRequest);
+        }
+
         item.setOwner(user);
 
         return mapToItemDto(itemRepository.save(item));
@@ -70,6 +78,10 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() != null) {
             itemChange.setAvailable(itemDto.getAvailable());
         }
+        if (itemDto.getRequestId() != null) {
+            ItemRequest itemRequest = chackItemReq(itemDto.getRequestId());
+            itemChange.setRequest(itemRequest);
+        }
         return mapToItemDto(itemRepository.save(itemChange));
     }
 
@@ -87,10 +99,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDto> getAll(Long userId) {
+    public Collection<ItemDto> getAll(Long userId, Integer from, Integer size) {
         log.info("Get all items user: {}", userId);
         checkUser(userId);
-        Collection<ItemDto> items = mapToItemDto(itemRepository.findAllByOwnerId(userId));
+        checkParam(from, size);
+        Collection<ItemDto> items =
+                mapToItemDto(itemRepository.findAllByOwnerId(userId, PageRequest.of(from / size, size)));
         items.forEach(itemDto -> {
             findLastAndNextBooking(itemDto);
             Collection<Comment> comments = commentRepository.findAllByItemId(itemDto.getId());
@@ -100,9 +114,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDto> getSearch(String text) {
+    public Collection<ItemDto> getSearch(String text, Integer from, Integer size) {
         log.info("Search: '{}'", text);
-        Collection<Item> items = itemRepository.findAllByNameOrDescriptionContainingIgnoreCase(text, text);
+        checkParam(from, size);
+        Collection<Item> items = itemRepository
+                .findAllByNameOrDescriptionContainingIgnoreCase(text, text, PageRequest.of(from / size, size));
         return mapToItemDto(items.stream().filter(Item::getAvailable).collect(Collectors.toList()));
     }
 
@@ -128,9 +144,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void findLastAndNextBooking(ItemDto itemDto) {
-        List<Booking> bookings = bookingRepository.findAllByItemIdAndStatusOrderByStartAsc(itemDto.getId(), Status.APPROVED);
-        itemDto.setLastBooking(mapToBookingDto(bookings.size() > 0 ? bookings.get(0) : null));
-        itemDto.setNextBooking(mapToBookingDto(bookings.size() > 1 ? bookings.get(1) : null));
+        Booking last = bookingRepository
+                .findFirstByItemIdAndStatusAndStartBeforeOrderByStartDesc(itemDto.getId(), Status.APPROVED, LocalDateTime.now());
+        Booking next = bookingRepository
+                .findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(itemDto.getId(), Status.APPROVED, LocalDateTime.now());
+        itemDto.setLastBooking(mapToBookingDto(last));
+        itemDto.setNextBooking(mapToBookingDto(next));
     }
 
     private void checkBooking(Long userId, Long itemId) {
@@ -141,18 +160,24 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private User checkUser(Long userId) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            throw new NotFoundException("Пользователь не найден");
-        }
-        return user.get();
+        return userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
     }
 
     private Item checkItem(Long itemId) {
-        Optional<Item> item = itemRepository.findById(itemId);
-        if (item.isEmpty()) {
-            throw new NotFoundException("Вещь не найдена");
-        }
-        return item.get();
+        return itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Вещь не найдена"));
     }
+
+    private ItemRequest chackItemReq(Long requestId) {
+        return itemRequestRepository.findById(requestId).orElseThrow(() -> new NotFoundException("Запрос не найден"));
+    }
+
+    private static void checkParam(Integer from, Integer size) {
+        if (from < 0) {
+            throw new ValidationException("Индекс первого элемента должен быть больше или равен 0");
+        }
+        if (size < 1) {
+            throw new ValidationException("Количество элементов для отображения должно быть больше 0");
+        }
+    }
+
 }
