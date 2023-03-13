@@ -4,11 +4,13 @@ import java.util.List;
 import java.util.Optional;
 import java.time.LocalDate;
 import java.util.Collection;
-import org.mockito.Mockito;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.springframework.data.domain.Sort;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
 import lombok.RequiredArgsConstructor;
 import javax.transaction.Transactional;
 import ru.practicum.shareit.user.model.User;
@@ -20,23 +22,29 @@ import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @Transactional
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@ExtendWith(MockitoExtension.class)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class ItemRequestServiceImplTest {
 
-    private final UserRepository userRepository = mock(UserRepository.class);
-    private final ItemRepository itemRepository = mock(ItemRepository.class);
-    private final ItemRequestRepository itemRequestRepository = mock(ItemRequestRepository.class);
-    private final ItemRequestService itemRequestService = new ItemRequestServiceImpl(userRepository, itemRepository, itemRequestRepository);
+    @MockBean
+    private final UserRepository userRepository;
+    @MockBean
+    private final ItemRepository itemRepository;
+    @MockBean
+    private final ItemRequestRepository itemRequestRepository;
+    @InjectMocks
+    private final ItemRequestService itemRequestService;
 
     private final User userRequestor = new User(1L, "name", "email@email.com");
     private final User userOwner = new User(2L, "name", "email@email.com");
@@ -74,7 +82,7 @@ class ItemRequestServiceImplTest {
     }
 
     @Test
-    void add() {
+    void testAddCorrect() {
         itemRequestService.add(userRequestor.getId(), itemRequest);
 
         Mockito.verify(userRepository, Mockito.times(1))
@@ -84,7 +92,7 @@ class ItemRequestServiceImplTest {
     }
 
     @Test
-    void getAllOwner() {
+    void testGetAllOwner() {
         Collection<ItemRequestDto> itemRequestDtos = itemRequestService.getAllOwner(userOwner.getId());
 
         assertThat(itemRequestDtos, is(not(empty())));
@@ -95,7 +103,7 @@ class ItemRequestServiceImplTest {
     }
 
     @Test
-    void getAllFrom() {
+    void testGetAllFrom() {
         Collection<ItemRequestDto> itemRequestDtos = itemRequestService.getAllFrom(userOwner.getId(), 1, 10);
 
         assertThat(itemRequestDtos, is(not(empty())));
@@ -108,7 +116,7 @@ class ItemRequestServiceImplTest {
     }
 
     @Test
-    void getById() {
+    void testGetById() {
         itemRequestService.getById(userRequestor.getId(), itemRequest.getId());
 
         Mockito.verify(userRepository, Mockito.times(1))
@@ -120,7 +128,7 @@ class ItemRequestServiceImplTest {
     }
 
     @Test
-    void addUserNotFound() {
+    void testAddIfUserNotFound() {
         final NotFoundException exception = Assertions.assertThrows(
                 NotFoundException.class,
                 () -> itemRequestService.add(404L, itemRequest));
@@ -130,7 +138,7 @@ class ItemRequestServiceImplTest {
     }
 
     @Test
-    void getAllValidationParamFromException() {
+    void testGetAllValidationParamFromException() {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class,
                 () -> itemRequestService.getAllFrom(userOwner.getId(), -1, 10));
@@ -139,7 +147,7 @@ class ItemRequestServiceImplTest {
     }
 
     @Test
-    void getAllValidationParamSizeException() {
+    void testGetAllValidationParamSizeException() {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class,
                 () -> itemRequestService.getAllFrom(userOwner.getId(), 1, 0));
@@ -148,7 +156,7 @@ class ItemRequestServiceImplTest {
     }
 
     @Test
-    void getByIdNotFoundItemRequestException() {
+    void testGetByIdNotFoundItemRequestException() {
         final NotFoundException exception = Assertions.assertThrows(
                 NotFoundException.class,
                 () -> itemRequestService.getById(userRequestor.getId(), 404L));

@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
-import ru.practicum.shareit.user.model.User;
 
 public class ItemRequestMapper {
     public static ItemRequestDto mapToItemRequestDto(ItemRequest itemRequest) {
@@ -19,12 +18,4 @@ public class ItemRequestMapper {
         return itemRequests.stream().map(ItemRequestMapper::mapToItemRequestDto).collect(Collectors.toList());
     }
 
-    public static ItemRequest mapToItemRequest(ItemRequestDto itemRequestDto, User user) {
-        return ItemRequest.builder()
-                .id(itemRequestDto.getId())
-                .description(itemRequestDto.getDescription())
-                .created(itemRequestDto.getCreated())
-                .requestor(user)
-                .build();
-    }
 }

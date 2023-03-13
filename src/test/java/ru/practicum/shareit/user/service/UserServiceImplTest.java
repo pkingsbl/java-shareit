@@ -2,10 +2,17 @@ package ru.practicum.shareit.user.service;
 
 import java.util.List;
 import java.util.Collection;
+import java.util.Optional;
 import javax.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -14,23 +21,43 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.when;
 
 @Transactional
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@ExtendWith(MockitoExtension.class)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class UserServiceImplTest {
 
-    private final UserService service;
+    @MockBean
     private final UserRepository userRepository;
+    @InjectMocks
+    private final UserService service;
+
+    private final List<User> users = List.of(
+            new User(1L, "Name1", "some1@email.com"),
+            new User(2L, "Name2", "some2@email.com"),
+            new User(3L, "Name3", "some3@email.com")
+    );
+    private final User userChange = new User(1L, "NameAfterChange", "someAfterChange@email.com");
+
+
+    @BeforeEach
+    void setUp() {
+        when(userRepository.findAll())
+                .thenReturn(users);
+        when(userRepository.findById(users.get(0).getId()))
+                .thenReturn(Optional.ofNullable(users.get(0)));
+        when(userRepository.findById(users.get(2).getId()))
+                .thenReturn(Optional.ofNullable(users.get(2)));
+        when(userRepository.save(users.get(0)))
+                .thenReturn(users.get(0));
+        when(userRepository.save(userChange))
+                .thenReturn(userChange);
+    }
 
     @Test
     void getAll() {
-        List<User> users = List.of(
-            new User(null, "Name1", "some1@email.com"),
-            new User(null, "Name2", "some2@email.com"),
-            new User(null, "Name3", "some3@email.com")
-        );
-        userRepository.saveAll(users);
         Collection<UserDto> userDtos =  service.getAll();
 
         assertThat(userDtos, is(not(empty())));
@@ -42,52 +69,56 @@ class UserServiceImplTest {
                     hasProperty("email", equalTo(user.getEmail()))
             )));
         }
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findAll();
     }
 
     @Test
     void getById() {
-        User user = new User(null, "NameById", "someById@email.com");
-        Long idUser = userRepository.save(user).getId();
-        UserDto userDto =  service.getById(idUser);
+        UserDto userDto =  service.getById(users.get(0).getId());
 
-        assertThat(userDto.getId(), equalTo(idUser));
-        assertThat(userDto.getName(), equalTo(user.getName()));
-        assertThat(userDto.getEmail(), equalTo(user.getEmail()));
+        assertThat(userDto.getId(), equalTo(users.get(0).getId()));
+        assertThat(userDto.getName(), equalTo(users.get(0).getName()));
+        assertThat(userDto.getEmail(), equalTo(users.get(0).getEmail()));
+        Mockito.verify(userRepository, Mockito.times(1))
+                .findById(users.get(0).getId());
     }
 
     @Test
-    void add() {
-        User user = new User(null, "Name", "some@email.com");
-        UserDto userDto =  service.add(user);
+    void testAdd() {
+        UserDto userDto =  service.add(users.get(0));
 
         assertThat(userDto.getId(), notNullValue());
-        assertThat(userDto.getName(), equalTo(user.getName()));
-        assertThat(userDto.getEmail(), equalTo(user.getEmail()));
+        assertThat(userDto.getName(), equalTo(users.get(0).getName()));
+        assertThat(userDto.getEmail(), equalTo(users.get(0).getEmail()));
+        Mockito.verify(userRepository, Mockito.times(1))
+                .save(users.get(0));
     }
 
     @Test
-    void change() {
-        User userBeforeChange = new User(null, "NameBeforeChange", "someBeforeChange@email.com");
-        Long idUser = userRepository.save(userBeforeChange).getId();
-        User userAfterChange = new User(null, "NameAfterChange", "someAfterChange@email.com");
-        UserDto userDto =  service.change(idUser, userAfterChange);
+    void testChange() {
+        UserDto userDto =  service.change(users.get(0).getId(), userChange);
 
-        assertThat(userDto.getId(), equalTo(idUser));
-        assertThat(userDto.getName(), equalTo(userAfterChange.getName()));
-        assertThat(userDto.getEmail(), equalTo(userAfterChange.getEmail()));
+        assertThat(userDto.getId(), equalTo(userChange.getId()));
+        assertThat(userDto.getName(), equalTo(userChange.getName()));
+        assertThat(userDto.getEmail(), equalTo(userChange.getEmail()));
+        Mockito.verify(userRepository, Mockito.times(1))
+                .save(userChange);
     }
 
     @Test
-    void deleteById() {
-        User user = new User(null, "NameById", "someById@email.com");
-        Long idUser = userRepository.save(user).getId();
-        UserDto userDtoBeforeDelete =  service.getById(idUser);
-        assertThat(userDtoBeforeDelete, notNullValue());
+    void testDeleteById() {
+        service.deleteById(users.get(2).getId());
 
-        service.deleteById(idUser);
+        Mockito.verify(userRepository, Mockito.times(1))
+                .deleteById(users.get(2).getId());
+    }
+
+    @Test
+    void testDeleteByIdIfUserNotFound() {
         final NotFoundException exception = Assertions.assertThrows(
                 NotFoundException.class,
-                () -> service.getById(idUser));
+                () -> service.deleteById(404L));
 
         Assertions.assertEquals("Пользователь не найден", exception.getMessage());
     }

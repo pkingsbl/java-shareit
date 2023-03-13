@@ -24,10 +24,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class UserControllerTest {
 
     @Autowired
-    ObjectMapper mapper;
+    private ObjectMapper mapper;
 
     @MockBean
-    UserService userServiceImpl;
+    private UserService userServiceImpl;
 
     @Autowired
     private MockMvc mvc;
@@ -40,7 +40,7 @@ class UserControllerTest {
             .build();
 
     @Test
-    void getAll() throws Exception {
+    void testGetAll() throws Exception {
         when(userServiceImpl.getAll())
                 .thenReturn(List.of(userDto));
 
@@ -52,7 +52,7 @@ class UserControllerTest {
     }
 
     @Test
-    void getById() throws Exception {
+    void testGetById() throws Exception {
         when(userServiceImpl.getById(anyLong()))
                 .thenReturn(userDto);
 
@@ -67,7 +67,7 @@ class UserControllerTest {
     }
 
     @Test
-    void add() throws Exception {
+    void testAdd() throws Exception {
         when(userServiceImpl.add(any()))
                 .thenReturn(userDto);
 
@@ -80,7 +80,7 @@ class UserControllerTest {
     }
 
     @Test
-    void addWithoutBody() throws Exception {
+    void testAddWithoutBody() throws Exception {
         when(userServiceImpl.add(any()))
                 .thenReturn(userDto);
 
@@ -92,7 +92,7 @@ class UserControllerTest {
     }
 
     @Test
-    void change() throws Exception {
+    void testChange() throws Exception {
         when(userServiceImpl.change(anyLong(), any()))
                 .thenReturn(userDto);
 
@@ -105,7 +105,7 @@ class UserControllerTest {
     }
 
     @Test
-    void changeWithoutBody() throws Exception {
+    void testChangeWithoutBody() throws Exception {
         when(userServiceImpl.change(anyLong(), any()))
                 .thenReturn(userDto);
 
@@ -117,7 +117,7 @@ class UserControllerTest {
     }
 
     @Test
-    void deleteById() throws Exception {
+    void testDeleteById() throws Exception {
         mvc.perform(delete("/users/1")
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)

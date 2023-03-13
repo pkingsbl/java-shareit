@@ -27,12 +27,13 @@ class ItemRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
+    private final LocalDateTime dateTime = LocalDateTime.now();
     private final User owner = new User(null, "Owner", "owner@email.com");
     private final User requestor = new User(null, "Booker", "booker@email.com");
 
     private final ItemRequest itemRequest = ItemRequest.builder()
             .description("Item")
-            .created(LocalDateTime.now())
+            .created(dateTime)
             .requestor(requestor)
             .build();
     private final Item item = Item.builder()
@@ -54,38 +55,34 @@ class ItemRepositoryTest {
 
     @AfterEach
     void afterEach() {
-        userRepository.deleteAll();
         itemRequestRepository.deleteAll();
         itemRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test
-    void findAllByOwnerId() {
+    void testFindAllByOwnerId() {
         Collection<Item> items = itemRepository.findAllByOwnerId(owner.getId(), PageRequest.of(0, 10));
-
-        assertNotNull(items);
-        assertFalse(items.isEmpty());
-        assertEquals(items.size(), 1);
-        assertTrue(items.contains(item));
+        checkAsserts(items);
     }
 
     @Test
-    void findAllByNameOrDescriptionContainingIgnoreCase() {
+    void testFindAllByNameOrDescriptionContainingIgnoreCase() {
         Collection<Item> items = itemRepository.findAllByNameOrDescriptionContainingIgnoreCase("for you", "for you", PageRequest.of(0, 10));
-
-        assertNotNull(items);
-        assertFalse(items.isEmpty());
-        assertEquals(items.size(), 1);
-        assertTrue(items.contains(item));
+        checkAsserts(items);
     }
 
     @Test
-    void findAllByRequestId() {
+    void testFindAllByRequestId() {
         Collection<Item> items = itemRepository.findAllByRequestId(itemRequest.getId());
+        checkAsserts(items);
+    }
 
+    private void checkAsserts(Collection<Item> items) {
         assertNotNull(items);
         assertFalse(items.isEmpty());
         assertEquals(items.size(), 1);
         assertTrue(items.contains(item));
     }
+
 }

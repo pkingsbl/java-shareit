@@ -23,10 +23,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ItemRequestControllerTest {
 
     @Autowired
-    ObjectMapper mapper;
+    private ObjectMapper mapper;
 
     @MockBean
-    ItemRequestService itemRequestService;
+    private ItemRequestService itemRequestService;
 
     @Autowired
     private MockMvc mvc;
@@ -37,7 +37,7 @@ class ItemRequestControllerTest {
     private final ItemRequestDto itemRequestDto = ItemRequestDto.builder().build();
 
     @Test
-    void add() throws Exception {
+    void testAdd() throws Exception {
         when(itemRequestService.add(anyLong(), any()))
                 .thenReturn(itemRequestDto);
 
@@ -51,7 +51,7 @@ class ItemRequestControllerTest {
     }
 
     @Test
-    void addWithoutUserId() throws Exception {
+    void testAddWithoutUserId() throws Exception {
         when(itemRequestService.add(anyLong(), any()))
                 .thenReturn(itemRequestDto);
 
@@ -65,7 +65,7 @@ class ItemRequestControllerTest {
     }
 
     @Test
-    void addWithoutBody() throws Exception {
+    void testAddWithoutBody() throws Exception {
         when(itemRequestService.add(anyLong(), any()))
                 .thenReturn(itemRequestDto);
 
@@ -78,7 +78,7 @@ class ItemRequestControllerTest {
     }
 
     @Test
-    void getAllOwner() throws Exception {
+    void testGetAllOwner() throws Exception {
         when(itemRequestService.getAllOwner(anyLong()))
                 .thenReturn(List.of(itemRequestDto));
 
@@ -91,7 +91,7 @@ class ItemRequestControllerTest {
     }
 
     @Test
-    void getAllOwnerWithoutUserId() throws Exception {
+    void testGetAllOwnerWithoutUserId() throws Exception {
         when(itemRequestService.getAllOwner(anyLong()))
                 .thenReturn(List.of(itemRequestDto));
 
@@ -104,7 +104,7 @@ class ItemRequestControllerTest {
     }
 
     @Test
-    void getAll() throws Exception {
+    void testGetAll() throws Exception {
         when(itemRequestService.getAllFrom(anyLong(), any(), any()))
                 .thenReturn(List.of(itemRequestDto));
 
@@ -119,7 +119,7 @@ class ItemRequestControllerTest {
     }
 
     @Test
-    void getAllWithoutUserId() throws Exception {
+    void testGetAllWithoutUserId() throws Exception {
         when(itemRequestService.getAllFrom(anyLong(), any(), any()))
                 .thenReturn(List.of(itemRequestDto));
 
@@ -134,7 +134,7 @@ class ItemRequestControllerTest {
     }
 
     @Test
-    void getAllWithoutParam() throws Exception {
+    void testGetAllWithoutParam() throws Exception {
         when(itemRequestService.getAllFrom(anyLong(), any(), any()))
                 .thenReturn(List.of(itemRequestDto));
 
@@ -147,7 +147,7 @@ class ItemRequestControllerTest {
     }
 
     @Test
-    void getById() throws Exception {
+    void testGetById() throws Exception {
         when(itemRequestService.getById(anyLong(), anyLong()))
                 .thenReturn(itemRequestDto);
 
@@ -160,7 +160,7 @@ class ItemRequestControllerTest {
     }
 
     @Test
-    void getByIdWithoutUserId() throws Exception {
+    void testGetByIdWithoutUserId() throws Exception {
         when(itemRequestService.getById(anyLong(), anyLong()))
                 .thenReturn(itemRequestDto);
 

@@ -2,16 +2,17 @@ package ru.practicum.shareit.booking.service;
 
 import java.util.List;
 import java.util.Optional;
-
-import org.junit.jupiter.api.AfterEach;
-import org.mockito.Mockito;
-import java.time.LocalDate;
 import java.util.Collection;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
 import lombok.RequiredArgsConstructor;
-import javax.transaction.Transactional;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.booking.model.State;
@@ -25,32 +26,37 @@ import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-@Transactional
+@ExtendWith(MockitoExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class BookingServiceImplTest {
 
-    private final UserRepository userRepository = mock(UserRepository.class);
-    private final ItemRepository itemRepository = mock(ItemRepository.class);
-    private final BookingRepository bookingRepository = mock(BookingRepository.class);
-    private final BookingService bookingService = new BookingServiceImpl(itemRepository, userRepository, bookingRepository);
+    @MockBean
+    private final UserRepository userRepository;
+    @MockBean
+    private final ItemRepository itemRepository;
+    @MockBean
+    private final BookingRepository bookingRepository;
+    @InjectMocks
+    private final BookingService bookingService;
 
+    private final LocalDateTime dateTime = LocalDateTime.now();
     private final User userReturn = new User(1L, "name", "email@email.com");
     private final User ownerReturn = new User(2L, "name", "email@email.com");
     private final Item itemReturn = Item.builder().id(1L).owner(ownerReturn).available(true).build();
     private final Booking bookingReturn = Booking.builder()
             .id(1L)
-            .start(LocalDate.now().atStartOfDay().plusDays(1))
-            .end(LocalDate.now().atStartOfDay().plusDays(2))
+            .start(dateTime.plusDays(1))
+            .end(dateTime.plusDays(2))
             .item(itemReturn)
             .status(Status.WAITING)
             .booker(userReturn)
@@ -59,13 +65,13 @@ class BookingServiceImplTest {
     @BeforeEach
     public void beforeEach() {
         when(userRepository.findById(Mockito.anyLong()))
-                .thenReturn(Optional.ofNullable(userReturn));
+                .thenReturn(Optional.of(userReturn));
         when(itemRepository.findById(itemReturn.getId()))
-                .thenReturn(Optional.ofNullable(itemReturn));
+                .thenReturn(Optional.of(itemReturn));
         when(bookingRepository.save(any(Booking.class)))
                 .thenReturn(bookingReturn);
         when(bookingRepository.findById(bookingReturn.getId()))
-                .thenReturn(Optional.ofNullable(bookingReturn));
+                .thenReturn(Optional.of(bookingReturn));
         when(bookingRepository.findAllByBookerId(Mockito.anyLong(), any(PageRequest.class)))
                 .thenReturn(List.of(bookingReturn));
         when(bookingRepository.findAllByItemOwnerId(Mockito.anyLong(), any(PageRequest.class)))
@@ -95,10 +101,10 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void add() {
+    void testAddNewBookingCorrect() {
         BookingDto bookingDto = BookingDto.builder()
-                .start(LocalDate.now().atStartOfDay().plusDays(1))
-                .end(LocalDate.now().atStartOfDay().plusDays(2))
+                .start(dateTime.plusDays(1))
+                .end(dateTime.plusDays(2))
                 .itemId(1L)
                 .build();
 
@@ -114,7 +120,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void approveApprove() {
+    void testApproveIfApproveTrue() {
         Booking booking = bookingService.approve(bookingReturn.getId(), ownerReturn.getId(), true);
 
         assertThat(booking.getId(), notNullValue());
@@ -126,7 +132,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void approveRejected() {
+    void testApproveRejectedIfApproveFalse() {
         Booking booking = bookingService.approve(bookingReturn.getId(), ownerReturn.getId(), false);
 
         assertThat(booking.getId(), notNullValue());
@@ -138,7 +144,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findById() {
+    void testFindById() {
         Booking booking = bookingService.findById(bookingReturn.getId(), userReturn.getId());
 
         assertThat(booking.getId(), equalTo(bookingReturn.getId()));
@@ -150,7 +156,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findAllByUser() {
+    void testFindAllByUserIfStateAll() {
         Collection<Booking> bookings = bookingService.findAllByUser(userReturn.getId(), State.ALL.toString(), 1, 10);
 
         assertThat(bookings, is(not(empty())));
@@ -162,7 +168,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findCurrentByUser() {
+    void testFindCurrentByUserIfStateCurrent() {
         bookingService.findAllByUser(userReturn.getId(), State.CURRENT.toString(), 1, 10);
 
         Mockito.verify(bookingRepository, Mockito.times(1))
@@ -172,7 +178,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findPastByUser() {
+    void testFindPastByUserIfStatePast() {
         bookingService.findAllByUser(userReturn.getId(), State.PAST.toString(), 1, 10);
 
         Mockito.verify(bookingRepository, Mockito.times(1))
@@ -182,7 +188,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findFutureByUser() {
+    void testFindFutureByUserIfStateFuture() {
         bookingService.findAllByUser(userReturn.getId(), State.FUTURE.toString(), 1, 10);
 
         Mockito.verify(bookingRepository, Mockito.times(1))
@@ -192,7 +198,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findWaitingByUser() {
+    void testFindWaitingByUserIfStateWaiting() {
         bookingService.findAllByUser(userReturn.getId(), State.WAITING.toString(), 1, 10);
 
         Mockito.verify(bookingRepository, Mockito.times(1))
@@ -202,7 +208,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findRejectedByUser() {
+    void testFindRejectedByUserIfStateRejected() {
         bookingService.findAllByUser(userReturn.getId(), State.REJECTED.toString(), 1, 10);
 
         Mockito.verify(bookingRepository, Mockito.times(1))
@@ -212,7 +218,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findStateValidationExceptionByUser() {
+    void testFindAllByUserIfStateIncorrect() {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class,
                 () -> bookingService.findAllByUser(userReturn.getId(), "ValidationException", 1, 10));
@@ -221,7 +227,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findAllByOwner() {
+    void testFindAllByOwnerIfStateAll() {
         Collection<Booking> bookings = bookingService.findAllByOwner(ownerReturn.getId(), State.ALL.toString(), 1, 10);
 
         assertThat(bookings, is(not(empty())));
@@ -233,7 +239,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findCurrentByOwner() {
+    void testFindCurrentByOwnerIfStateCurrent() {
         bookingService.findAllByOwner(ownerReturn.getId(), State.CURRENT.toString(), 1, 10);
 
         Mockito.verify(bookingRepository, Mockito.times(1))
@@ -243,7 +249,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findPastByOwner() {
+    void testFindPastByOwnerIfStatePast() {
         bookingService.findAllByOwner(ownerReturn.getId(), State.PAST.toString(), 1, 10);
 
         Mockito.verify(bookingRepository, Mockito.times(1))
@@ -253,7 +259,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findFutureByOwner() {
+    void testFindFutureByOwnerIfStateFuture() {
         bookingService.findAllByOwner(ownerReturn.getId(), State.FUTURE.toString(), 1, 10);
 
         Mockito.verify(bookingRepository, Mockito.times(1))
@@ -263,7 +269,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findWaitingByOwner() {
+    void testFindWaitingByOwnerIfStateWaiting() {
         bookingService.findAllByOwner(ownerReturn.getId(), State.WAITING.toString(), 1, 10);
 
         Mockito.verify(bookingRepository, Mockito.times(1))
@@ -273,7 +279,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findRejectedByOwner() {
+    void testFindRejectedByOwnerIfStateRejected() {
         bookingService.findAllByOwner(ownerReturn.getId(), State.REJECTED.toString(), 1, 10);
 
         Mockito.verify(bookingRepository, Mockito.times(1))
@@ -283,7 +289,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findStateValidationExceptionByOwner() {
+    void testFindAllByOwnerIfStateIncorrect() {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class,
                 () -> bookingService.findAllByOwner(ownerReturn.getId(), "ValidationException", 1, 10));
@@ -292,10 +298,10 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void addValidationDateException() {
+    void testAddIfDateIncorrect() {
         BookingDto bookingDto = BookingDto.builder()
-                .start(LocalDate.now().atStartOfDay().plusDays(2))
-                .end(LocalDate.now().atStartOfDay().plusDays(1))
+                .start(dateTime.plusDays(2))
+                .end(dateTime.plusDays(1))
                 .itemId(1L)
                 .build();
 
@@ -307,10 +313,10 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void addValidationOwnerException() {
+    void testAddIfBookerOwnerItem() {
         BookingDto bookingDto = BookingDto.builder()
-                .start(LocalDate.now().atStartOfDay().plusDays(1))
-                .end(LocalDate.now().atStartOfDay().plusDays(2))
+                .start(dateTime.plusDays(1))
+                .end(dateTime.plusDays(2))
                 .itemId(1L)
                 .build();
 
@@ -322,10 +328,10 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void addValidationAvailableException() {
+    void testAddIfItemAvailableFalse() {
         BookingDto bookingDto = BookingDto.builder()
-                .start(LocalDate.now().atStartOfDay().plusDays(1))
-                .end(LocalDate.now().atStartOfDay().plusDays(2))
+                .start(dateTime.plusDays(1))
+                .end(dateTime.plusDays(2))
                 .itemId(1L)
                 .build();
         itemReturn.setAvailable(false);
@@ -338,7 +344,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void approveValidationStatusException() {
+    void testApproveIfItemApproved() {
         bookingReturn.setStatus(Status.APPROVED);
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class,
@@ -348,7 +354,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findAllValidationParamFromException() {
+    void testFindAllByUserIfFromIncorrect() {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class,
                 () -> bookingService.findAllByUser(userReturn.getId(), State.ALL.toString(), -1, 10));
@@ -357,7 +363,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findAllValidationParamSizeException() {
+    void testFindAllByUserIfSizeIncorrect() {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class,
                 () -> bookingService.findAllByUser(userReturn.getId(), State.ALL.toString(), 1, 0));
@@ -366,7 +372,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void approveItemNotFound() {
+    void testApproveIfItemNotFound() {
         final NotFoundException exception = Assertions.assertThrows(
                 NotFoundException.class,
                 () -> bookingService.approve(bookingReturn.getId(), 404L, true));
@@ -375,7 +381,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void approveBookingNotFound() {
+    void testApproveIfBookingNotFound() {
         final NotFoundException exception = Assertions.assertThrows(
                 NotFoundException.class,
                 () -> bookingService.approve(404L, ownerReturn.getId(), true));
@@ -384,10 +390,10 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void addItemNotFound() {
+    void testAddIfItemNotFound() {
         BookingDto bookingDto = BookingDto.builder()
-                .start(LocalDate.now().atStartOfDay().plusDays(1))
-                .end(LocalDate.now().atStartOfDay().plusDays(2))
+                .start(dateTime.plusDays(1))
+                .end(dateTime.plusDays(2))
                 .itemId(404L)
                 .build();
 

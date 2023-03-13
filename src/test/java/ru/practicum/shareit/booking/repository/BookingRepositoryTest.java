@@ -28,6 +28,7 @@ class BookingRepositoryTest {
     @Autowired
     private ItemRepository itemRepository;
 
+    private final LocalDateTime dateTime = LocalDateTime.now();
     private final User booker = new User(null, "Booker", "booker@email.com");
     private final User owner = new User(null, "Owner", "owner@email.com");
     private final Item item = Item.builder()
@@ -39,8 +40,8 @@ class BookingRepositoryTest {
             .build();
     private final Booking booking = Booking.builder()
             .id(null)
-            .start(LocalDateTime.now().plusDays(1))
-            .end(LocalDateTime.now().plusDays(2))
+            .start(dateTime.plusDays(1))
+            .end(dateTime.plusDays(2))
             .item(item)
             .booker(booker)
             .status(Status.APPROVED)
@@ -56,128 +57,88 @@ class BookingRepositoryTest {
 
     @AfterEach
     public void afterEach() {
-        userRepository.deleteAll();
-        itemRepository.deleteAll();
         bookingRepository.deleteAll();
+        itemRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test
-    void findAllByBookerId() {
+    void testFindAllByBookerId() {
         Collection<Booking> bookings = bookingRepository.findAllByBookerId(booker.getId(), PageRequest.of(0, 10));
-
-        assertNotNull(bookings);
-        assertFalse(bookings.isEmpty());
-        assertEquals(bookings.size(), 1);
-        assertTrue(bookings.contains(booking));
+        checkAsserts(bookings);
     }
 
     @Test
-    void findAllByBookerIdAndStartBeforeAndEndAfter() {
-        Collection<Booking> bookings = bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfter(booker.getId(), LocalDateTime.now().plusDays(2), LocalDateTime.now(), PageRequest.of(0, 10));
-
-        assertNotNull(bookings);
-        assertFalse(bookings.isEmpty());
-        assertEquals(bookings.size(), 1);
-        assertTrue(bookings.contains(booking));
+    void testFindAllByBookerIdAndStartBeforeAndEndAfter() {
+        Collection<Booking> bookings = bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfter(booker.getId(), dateTime.plusDays(2), dateTime, PageRequest.of(0, 10));
+        checkAsserts(bookings);
     }
 
     @Test
-    void findAllByBookerIdAndEndBefore() {
-        Collection<Booking> bookings = bookingRepository.findAllByBookerIdAndEndBefore(booker.getId(), LocalDateTime.now().plusDays(3), PageRequest.of(0, 10));
-
-        assertNotNull(bookings);
-        assertFalse(bookings.isEmpty());
-        assertEquals(bookings.size(), 1);
-        assertTrue(bookings.contains(booking));
+    void testFindAllByBookerIdAndEndBefore() {
+        Collection<Booking> bookings = bookingRepository.findAllByBookerIdAndEndBefore(booker.getId(), dateTime.plusDays(3), PageRequest.of(0, 10));
+        checkAsserts(bookings);
     }
 
     @Test
-    void findAllByBookerIdAndStartAfter() {
-        Collection<Booking> bookings = bookingRepository.findAllByBookerIdAndStartAfter(booker.getId(), LocalDateTime.now(), PageRequest.of(0, 10));
-
-        assertNotNull(bookings);
-        assertFalse(bookings.isEmpty());
-        assertEquals(bookings.size(), 1);
-        assertTrue(bookings.contains(booking));
+    void testFindAllByBookerIdAndStartAfter() {
+        Collection<Booking> bookings = bookingRepository.findAllByBookerIdAndStartAfter(booker.getId(), dateTime, PageRequest.of(0, 10));
+        checkAsserts(bookings);
     }
 
     @Test
-    void findAllByBookerIdAndStatus() {
+    void testFindAllByBookerIdAndStatusApproved() {
         Collection<Booking> bookings = bookingRepository.findAllByBookerIdAndStatus(booker.getId(), Status.APPROVED, PageRequest.of(0, 10));
-
-        assertNotNull(bookings);
-        assertFalse(bookings.isEmpty());
-        assertEquals(bookings.size(), 1);
-        assertTrue(bookings.contains(booking));
+        checkAsserts(bookings);
     }
 
     @Test
-    void findAllByItemOwnerId() {
+    void testFindAllByItemOwnerId() {
         Collection<Booking> bookings = bookingRepository.findAllByItemOwnerId(owner.getId(), PageRequest.of(0, 10));
-
-        assertNotNull(bookings);
-        assertFalse(bookings.isEmpty());
-        assertEquals(bookings.size(), 1);
-        assertTrue(bookings.contains(booking));
+        checkAsserts(bookings);
     }
 
     @Test
-    void findAllByItemOwnerIdAndStartBeforeAndEndAfter() {
-        Collection<Booking> bookings = bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfter(owner.getId(), LocalDateTime.now().plusDays(2), LocalDateTime.now(), PageRequest.of(0, 10));
-
-        assertNotNull(bookings);
-        assertFalse(bookings.isEmpty());
-        assertEquals(bookings.size(), 1);
-        assertTrue(bookings.contains(booking));
+    void testFindAllByItemOwnerIdAndStartBeforeAndEndAfter() {
+        Collection<Booking> bookings = bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfter(owner.getId(), dateTime.plusDays(2), dateTime, PageRequest.of(0, 10));
+        checkAsserts(bookings);
     }
 
     @Test
-    void findAllByItemOwnerIdAndEndBefore() {
-        Collection<Booking> bookings = bookingRepository.findAllByItemOwnerIdAndEndBefore(owner.getId(), LocalDateTime.now().plusDays(3), PageRequest.of(0, 10));
-        System.out.println(bookings);
-        assertNotNull(bookings);
-        assertFalse(bookings.isEmpty());
-        assertEquals(bookings.size(), 1);
-        assertTrue(bookings.contains(booking));
+    void testFindAllByItemOwnerIdAndEndBefore() {
+        Collection<Booking> bookings = bookingRepository.findAllByItemOwnerIdAndEndBefore(owner.getId(), dateTime.plusDays(3), PageRequest.of(0, 10));
+        checkAsserts(bookings);
     }
 
     @Test
-    void findAllByItemOwnerIdAndStartAfter() {
-        Collection<Booking> bookings = bookingRepository.findAllByItemOwnerIdAndStartAfter(owner.getId(), LocalDateTime.now(), PageRequest.of(0, 10));
-
-        assertNotNull(bookings);
-        assertFalse(bookings.isEmpty());
-        assertEquals(bookings.size(), 1);
-        assertTrue(bookings.contains(booking));
+    void testFindAllByItemOwnerIdAndStartAfter() {
+        Collection<Booking> bookings = bookingRepository.findAllByItemOwnerIdAndStartAfter(owner.getId(), dateTime, PageRequest.of(0, 10));
+        checkAsserts(bookings);
     }
 
     @Test
-    void findAllByItemOwnerIdAndStatus() {
+    void testFindAllByItemOwnerIdAndStatusApproved() {
         Collection<Booking> bookings = bookingRepository.findAllByItemOwnerIdAndStatus(owner.getId(), Status.APPROVED, PageRequest.of(0, 10));
-
-        assertNotNull(bookings);
-        assertFalse(bookings.isEmpty());
-        assertEquals(bookings.size(), 1);
-        assertTrue(bookings.contains(booking));
+        checkAsserts(bookings);
     }
 
     @Test
-    void findAllByItemIdAndStatusOrderByStartAsc() {
+    void testFindAllByItemIdAndStatusOrderByStartAscIfStatusApproved() {
         Collection<Booking> bookings = bookingRepository.findAllByItemIdAndStatusOrderByStartAsc(item.getId(), Status.APPROVED);
-
-        assertNotNull(bookings);
-        assertFalse(bookings.isEmpty());
-        assertEquals(bookings.size(), 1);
-        assertTrue(bookings.contains(booking));
+        checkAsserts(bookings);
     }
 
     @Test
-    void findAllByBookerIdAndItemIdAndStatusEqualsAndEndIsBefore() {
-        Collection<Booking> bookings = bookingRepository.findAllByBookerIdAndItemIdAndStatusEqualsAndEndIsBefore(booker.getId(), item.getId(), Status.APPROVED, LocalDateTime.now().plusDays(3));
+    void testFindAllByBookerIdAndItemIdAndStatusEqualsAndEndIsBeforeIfStatusApproved() {
+        Collection<Booking> bookings = bookingRepository.findAllByBookerIdAndItemIdAndStatusEqualsAndEndIsBefore(booker.getId(), item.getId(), Status.APPROVED, dateTime.plusDays(3));
+        checkAsserts(bookings);
+    }
 
+    private void checkAsserts(Collection<Booking> bookings) {
         assertNotNull(bookings);
         assertFalse(bookings.isEmpty());
         assertEquals(bookings.size(), 1);
         assertTrue(bookings.contains(booking));
     }
+
 }

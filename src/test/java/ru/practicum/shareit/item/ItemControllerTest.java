@@ -23,10 +23,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ItemControllerTest {
 
     @Autowired
-    ObjectMapper mapper;
+    private ObjectMapper mapper;
 
     @MockBean
-    ItemService itemService;
+    private ItemService itemService;
 
     @Autowired
     private MockMvc mvc;
@@ -44,7 +44,7 @@ class ItemControllerTest {
             .build();
 
     @Test
-    void add() throws Exception {
+    void testAddCorrect() throws Exception {
         when(itemService.add(anyLong(), any()))
                 .thenReturn(itemDto);
 
@@ -58,7 +58,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void addWithoutUserId() throws Exception {
+    void testAddWithoutUserId() throws Exception {
         when(itemService.add(anyLong(), any()))
                 .thenReturn(itemDto);
 
@@ -72,7 +72,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void addWithoutBody() throws Exception {
+    void testAddWithoutBody() throws Exception {
         when(itemService.add(anyLong(), any()))
                 .thenReturn(itemDto);
 
@@ -85,7 +85,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void change() throws Exception {
+    void testChange() throws Exception {
         when(itemService.change(anyLong(), any(),  any()))
                 .thenReturn(itemDto);
 
@@ -99,7 +99,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void changeWithoutUserId() throws Exception {
+    void testChangeWithoutUserId() throws Exception {
         when(itemService.change(anyLong(), any(),  any()))
                 .thenReturn(itemDto);
 
@@ -113,7 +113,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void changeWithoutBody() throws Exception {
+    void testChangeWithoutBody() throws Exception {
         when(itemService.change(anyLong(), any(),  any()))
                 .thenReturn(itemDto);
 
@@ -126,7 +126,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void getById() throws Exception {
+    void testGetById() throws Exception {
         when(itemService.getById(anyLong(), any()))
                 .thenReturn(itemDto);
 
@@ -139,7 +139,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void getByIdWithoutUserId() throws Exception {
+    void testGetByIdWithoutUserId() throws Exception {
         when(itemService.getById(anyLong(), any()))
                 .thenReturn(itemDto);
 
@@ -152,7 +152,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void getAll() throws Exception {
+    void testGetAll() throws Exception {
         when(itemService.getAll(anyLong(), any(), any()))
                 .thenReturn(List.of(itemDto));
 
@@ -167,7 +167,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void getAllWithoutUserId() throws Exception {
+    void testGetAllWithoutUserId() throws Exception {
         when(itemService.getAll(anyLong(), any(), any()))
                 .thenReturn(List.of(itemDto));
 
@@ -182,7 +182,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void getAllWithoutParam() throws Exception {
+    void testGetAllWithoutParam() throws Exception {
         when(itemService.getAll(anyLong(), any(), any()))
                 .thenReturn(List.of(itemDto));
 
@@ -195,7 +195,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void getSearch() throws Exception {
+    void testGetSearch() throws Exception {
         when(itemService.getSearch(any(), any(), any()))
                 .thenReturn(List.of(itemDto));
 
@@ -211,7 +211,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void getSearchWithoutUserId() throws Exception {
+    void testGetSearchWithoutUserId() throws Exception {
         when(itemService.getSearch(any(), any(), any()))
                 .thenReturn(List.of(itemDto));
 
@@ -227,7 +227,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void getSearchWithoutParam() throws Exception {
+    void testGetSearchWithoutParam() throws Exception {
         when(itemService.getSearch(any(), any(), any()))
                 .thenReturn(List.of(itemDto));
 
@@ -240,7 +240,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void deleteById() throws Exception {
+    void testDeleteById() throws Exception {
         mvc.perform(delete("/items/1")
                         .header(HEADER_ID, USER_ID)
                         .characterEncoding(StandardCharsets.UTF_8)
@@ -250,7 +250,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void deleteByIdWithoutUserId() throws Exception {
+    void testDeleteByIdWithoutUserId() throws Exception {
         mvc.perform(delete("/items/1")
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -260,7 +260,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void addComment() throws Exception {
+    void testAddComment() throws Exception {
         when(itemService.postComment(anyLong(), any(), any()))
                 .thenReturn(commentDto);
 
@@ -274,7 +274,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void addCommentWithoutUserId() throws Exception {
+    void testAddCommentWithoutUserId() throws Exception {
         when(itemService.postComment(anyLong(), any(), any()))
                 .thenReturn(commentDto);
 
@@ -288,7 +288,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void addCommentWithoutBody() throws Exception {
+    void testAddCommentWithoutBody() throws Exception {
         when(itemService.postComment(anyLong(), any(), any()))
                 .thenReturn(commentDto);
 

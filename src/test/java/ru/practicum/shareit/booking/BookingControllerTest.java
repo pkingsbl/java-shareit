@@ -1,7 +1,7 @@
 package ru.practicum.shareit.booking;
 
 import java.util.List;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.nio.charset.StandardCharsets;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
@@ -27,21 +27,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class BookingControllerTest {
 
     @Autowired
-    ObjectMapper mapper;
+    private ObjectMapper mapper;
 
     @MockBean
-    BookingService bookingService;
+    private BookingService bookingService;
 
     @Autowired
     private MockMvc mvc;
 
     private static final Long USER_ID = 1L;
     private static final String HEADER_ID = "X-Sharer-User-Id";
+    private final LocalDateTime dateTime = LocalDateTime.now();
     private final Booking booking = Booking
             .builder()
             .id(1L)
-            .start(LocalDate.now().atStartOfDay().plusDays(1).plusSeconds(1))
-            .end(LocalDate.now().atStartOfDay().plusDays(4).plusSeconds(1))
+            .start(dateTime.plusDays(1).plusSeconds(1))
+            .end(dateTime.plusDays(4).plusSeconds(1))
             .item(Item.builder().id(1L).build())
             .booker(new User(USER_ID, "Name", "mail@mail.com"))
             .status(Status.WAITING)
@@ -49,13 +50,13 @@ class BookingControllerTest {
 
     private final BookingDto bookingDto = BookingDto
             .builder()
-            .start(LocalDate.now().atStartOfDay().plusDays(1).plusSeconds(1))
-            .end(LocalDate.now().atStartOfDay().plusDays(4).plusSeconds(1))
+            .start(dateTime.plusDays(1).plusSeconds(1))
+            .end(dateTime.plusDays(4).plusSeconds(1))
             .itemId(booking.getItem().getId())
             .build();
 
     @Test
-    void add() throws Exception {
+    void testAddCorrect() throws Exception {
         when(bookingService.add(anyLong(), any()))
                 .thenReturn(booking);
 
@@ -69,7 +70,7 @@ class BookingControllerTest {
     }
 
     @Test
-    void addWithoutUserId() throws Exception {
+    void testAddWithoutUserId() throws Exception {
         when(bookingService.add(anyLong(), any()))
                 .thenReturn(booking);
 
@@ -83,7 +84,7 @@ class BookingControllerTest {
     }
 
     @Test
-    void addWithoutBody() throws Exception {
+    void testAddWithoutBody() throws Exception {
         when(bookingService.add(anyLong(), any()))
                 .thenReturn(booking);
 
@@ -96,7 +97,7 @@ class BookingControllerTest {
     }
 
     @Test
-    void approve() throws Exception {
+    void testApprove() throws Exception {
         when(bookingService.approve(anyLong(), any(), any()))
                 .thenReturn(booking);
 
@@ -110,7 +111,7 @@ class BookingControllerTest {
     }
 
     @Test
-    void approveWithoutUserId() throws Exception {
+    void testApproveWithoutUserId() throws Exception {
         when(bookingService.approve(anyLong(), any(), any()))
                 .thenReturn(booking);
 
@@ -124,7 +125,7 @@ class BookingControllerTest {
     }
 
     @Test
-    void approveWithoutRequestParam() throws Exception {
+    void testApproveWithoutRequestParam() throws Exception {
         when(bookingService.approve(anyLong(), any(), any()))
                 .thenReturn(booking);
 
@@ -138,7 +139,7 @@ class BookingControllerTest {
     }
 
     @Test
-    void findById() throws Exception {
+    void testFindById() throws Exception {
         when(bookingService.findById(anyLong(), anyLong()))
                 .thenReturn(booking);
 
@@ -151,7 +152,7 @@ class BookingControllerTest {
     }
 
     @Test
-    void findByIdWithoutUserId() throws Exception {
+    void testFindByIdWithoutUserId() throws Exception {
         when(bookingService.findById(anyLong(), anyLong()))
                 .thenReturn(booking);
 
@@ -164,7 +165,7 @@ class BookingControllerTest {
     }
 
     @Test
-    void findAllByUser() throws Exception {
+    void testFindAllByUser() throws Exception {
         when(bookingService.findAllByUser(anyLong(), any(), any(), any()))
                 .thenReturn(List.of(booking));
 
@@ -180,7 +181,7 @@ class BookingControllerTest {
     }
 
     @Test
-    void findAllByUserWithoutUserId() throws Exception {
+    void testFindAllByUserWithoutUserId() throws Exception {
         when(bookingService.findAllByUser(anyLong(), any(), any(), any()))
                 .thenReturn(List.of(booking));
 
@@ -196,7 +197,7 @@ class BookingControllerTest {
     }
 
     @Test
-    void findAllByUserWithoutParam() throws Exception {
+    void testFindAllByUserWithoutParam() throws Exception {
         when(bookingService.findAllByUser(anyLong(), any(), any(), any()))
                 .thenReturn(List.of(booking));
 
@@ -209,7 +210,7 @@ class BookingControllerTest {
     }
 
     @Test
-    void findAllByOwner() throws Exception {
+    void testFindAllByOwner() throws Exception {
         when(bookingService.findAllByUser(anyLong(), any(), any(), any()))
                 .thenReturn(List.of(booking));
 
@@ -225,7 +226,7 @@ class BookingControllerTest {
     }
 
     @Test
-    void findAllByOwnerWithoutUserId() throws Exception {
+    void testFindAllByOwnerWithoutUserId() throws Exception {
         when(bookingService.findAllByUser(anyLong(), any(), any(), any()))
                 .thenReturn(List.of(booking));
 
@@ -241,7 +242,7 @@ class BookingControllerTest {
     }
 
     @Test
-    void findAllByOwnerWithoutParam() throws Exception {
+    void testFindAllByOwnerWithoutParam() throws Exception {
         when(bookingService.findAllByUser(anyLong(), any(), any(), any()))
                 .thenReturn(List.of(booking));
 

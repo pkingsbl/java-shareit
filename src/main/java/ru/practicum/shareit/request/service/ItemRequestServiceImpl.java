@@ -1,7 +1,6 @@
 package ru.practicum.shareit.request.service;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +8,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
@@ -72,18 +72,14 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     public ItemRequestDto getById(Long userId, Long requestId) {
         log.info("Get requests by id: {}", requestId);
         checkUser(userId);
-        ItemRequest itemRequest = chackItemReq(requestId);
+        ItemRequest itemRequest = checkItemReq(requestId);
         ItemRequestDto itemRequestDto = mapToItemRequestDto(itemRequest);
         findItemsForRequest(itemRequestDto);
         return itemRequestDto;
     }
 
     private User checkUser(Long userId) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            throw new NotFoundException("Пользователь не найден");
-        }
-        return user.get();
+        return userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
     }
 
     private static void checkParam(Integer from, Integer size) {
@@ -96,14 +92,11 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     private void findItemsForRequest(ItemRequestDto itemRequestDto) {
-        itemRequestDto.setItems(mapToItemDto(itemRepository.findAllByRequestId(itemRequestDto.getId())));
+        Collection<Item> items = itemRepository.findAllByRequestId(itemRequestDto.getId());
+        itemRequestDto.setItems(mapToItemDto(items));
     }
 
-    private ItemRequest chackItemReq(Long requestId) {
-        Optional<ItemRequest> itemRequest = itemRequestRepository.findById(requestId);
-        if (itemRequest.isEmpty()) {
-            throw new NotFoundException("Запрос не найден");
-        }
-        return itemRequest.get();
+    private ItemRequest checkItemReq(Long requestId) {
+        return itemRequestRepository.findById(requestId).orElseThrow(() -> new NotFoundException("Запрос не найден"));
     }
 }

@@ -2,15 +2,19 @@ package ru.practicum.shareit.item.service;
 
 import java.util.List;
 import java.util.Optional;
-import org.mockito.Mockito;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.time.LocalDateTime;
+import org.mockito.Mockito;
+import org.mockito.InjectMocks;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import lombok.RequiredArgsConstructor;
 import javax.transaction.Transactional;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -31,23 +35,29 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @Transactional
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@ExtendWith(MockitoExtension.class)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class ItemServiceImplTest {
 
-    private final ItemRepository itemRepository = mock(ItemRepository.class);
-    private final UserRepository userRepository = mock(UserRepository.class);
-    private final BookingRepository bookingRepository = mock(BookingRepository.class);
-    private final CommentRepository commentRepository = mock(CommentRepository.class);
-    private final ItemRequestRepository itemRequestRepository = mock(ItemRequestRepository.class);
-    private final ItemService itemService = new ItemServiceImpl(itemRepository, userRepository, bookingRepository, commentRepository, itemRequestRepository);
+    @MockBean
+    private final ItemRepository itemRepository;
+    @MockBean
+    private final UserRepository userRepository;
+    @MockBean
+    private final BookingRepository bookingRepository;
+    @MockBean
+    private final CommentRepository commentRepository;
+    @MockBean
+    private final ItemRequestRepository itemRequestRepository;
+    @InjectMocks
+    private final ItemService itemService;
 
     private final User userRequestor = new User(1L, "name", "email@email.com");
     private final User userOwner = new User(2L, "name", "email@email.com");
@@ -106,7 +116,7 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void add() {
+    void testAddItemCorrect() {
         ItemDto itemDtoResponse = itemService.add(userOwner.getId(), itemDto);
 
         assertThat(itemDtoResponse.getId(), notNullValue());
@@ -121,7 +131,7 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void change() {
+    void testChange() {
         ItemDto itemDtoForChange = ItemDto.builder()
                 .id(itemRequest.getId())
                 .name("Cu Cuckoo")
@@ -145,7 +155,7 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void getById() {
+    void testGetById() {
         ItemDto itemDtoResponse = itemService.getById(userOwner.getId(), itemReturn.getId());
 
         assertThat(itemDtoResponse.getId(), notNullValue());
@@ -158,7 +168,7 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void getAll() {
+    void testGetAll() {
         Collection<ItemDto> itemDtoResponses = itemService.getAll(userOwner.getId(), 1, 10);
 
         assertThat(itemDtoResponses, is(not(empty())));
@@ -173,7 +183,7 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void getSearch() {
+    void testGetSearch() {
         String text = "Cuckoo";
         Collection<ItemDto> itemDtoResponses = itemService.getSearch(text, 1, 10);
 
@@ -184,7 +194,7 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void deleteById() {
+    void testDeleteById() {
         itemService.deleteById(userOwner.getId(), itemReturn.getId());
 
         Mockito.verify(userRepository, Mockito.times(1))
@@ -194,7 +204,7 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void postComment() {
+    void testPostComment() {
         CommentDto commentDto = CommentDto.builder().id(1L).authorName("Мистер").text("норм").build();
         itemService.postComment(userRequestor.getId(), itemReturn.getId(), commentDto);
 
@@ -209,7 +219,7 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void addUserNotFound() {
+    void testAddItemIfUserNotFound() {
         final NotFoundException exception = Assertions.assertThrows(
                 NotFoundException.class,
                 () -> itemService.add(404L, itemDto));
@@ -218,7 +228,7 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void addItemRequestNotFound() {
+    void testAddItemIfItemRequestNotFound() {
         ItemDto itemDtoItemRequestNotFound = ItemDto.builder()
                 .id(itemRequest.getId())
                 .name("Cuckoo")
@@ -234,7 +244,7 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void changeItemNotFound() {
+    void testChangeItemIfItemNotFound() {
         final NotFoundException exception = Assertions.assertThrows(
                 NotFoundException.class,
                 () -> itemService.change(userOwner.getId(), 404L, itemDto));
@@ -243,7 +253,7 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void getAllValidationParamFromException() {
+    void testGetAllIfFromIncorrect() {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class,
                 () -> itemService.getAll(userOwner.getId(), -1, 10));
@@ -252,7 +262,7 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void getAllValidationParamSizeException() {
+    void testGetAllIfSizeIncorrect() {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class,
                 () -> itemService.getAll(userOwner.getId(), 1, 0));
@@ -261,7 +271,7 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void deleteByIdForbiddenException() {
+    void testDeleteByIdIfUserNotOwner() {
         final ForbiddenException exception = Assertions.assertThrows(
                 ForbiddenException.class,
                 () -> itemService.deleteById(userRequestor.getId(), itemReturn.getId()));

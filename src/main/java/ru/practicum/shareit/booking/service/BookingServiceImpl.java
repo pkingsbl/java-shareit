@@ -142,27 +142,15 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private User checkUser(Long userId) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            throw new NotFoundException("Пользователь не найден");
-        }
-        return user.get();
+        return userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
     }
 
     private Item checkItem(Long itemId) {
-        Optional<Item> item = itemRepository.findById(itemId);
-        if (item.isEmpty()) {
-            throw new NotFoundException("Вещь не найдена");
-        }
-        return item.get();
+        return itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Вещь не найдена"));
     }
 
     private Booking checkBooking(Long bookingId) {
-        Optional<Booking> booking = bookingRepository.findById(bookingId);
-        if (booking.isEmpty()) {
-            throw new NotFoundException("Бронирование не найдено");
-        }
-        return booking.get();
+        return bookingRepository.findById(bookingId).orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
     }
 
     private void checkOwner(Item item, Long userId) {
