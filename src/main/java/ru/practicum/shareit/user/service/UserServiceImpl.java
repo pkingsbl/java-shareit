@@ -1,6 +1,5 @@
 package ru.practicum.shareit.user.service;
 
-import java.util.Optional;
 import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +29,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getById(Long id) {
         log.info("Get user by id {}", id);
-        User user = checkUser(userRepository.findById(id));
+        User user = checkUser(id);
 
         return mapToUserDto(user);
     }
@@ -47,7 +46,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto change(Long id, User user) {
         log.info("Change user {}: {}", id, user.toString());
-        User userChange = checkUser(userRepository.findById(id));
+        User userChange = checkUser(id);
 
         if (user.getEmail() != null) {
             userChange.setEmail(user.getEmail());
@@ -63,14 +62,11 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void deleteById(Long id) {
         log.info("Delete user by id {}", id);
-        checkUser(userRepository.findById(id));
+        checkUser(id);
         userRepository.deleteById(id);
     }
 
-    private static User checkUser(Optional<User> userChange) {
-        if (userChange.isEmpty()) {
-            throw new NotFoundException("Пользователь не найден");
-        }
-        return userChange.get();
+    private User checkUser(Long userChange) {
+        return userRepository.findById(userChange).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
     }
 }
