@@ -1,6 +1,5 @@
 package ru.practicum.shareitserver.request.repository;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import ru.practicum.shareitserver.request.model.ItemRequest;
@@ -12,5 +11,5 @@ public interface ItemRequestRepository extends JpaRepository<ItemRequest, Long> 
 
     Collection<ItemRequest> findAllByRequestorIdOrderByCreatedAsc(Long userId);
 
-    Page<ItemRequest> findAllByRequestorNotLike(User user, PageRequest of);
+    Collection<ItemRequest> findAllByRequestorNotLike(User user, PageRequest of);
 }
