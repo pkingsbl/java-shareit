@@ -24,6 +24,7 @@ import ru.practicum.shareitserver.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -111,7 +112,9 @@ public class ItemServiceImpl implements ItemService {
             Collection<Comment> comments = commentRepository.findAllByItemId(itemDto.getId());
             itemDto.setComments(mapToCommentDto(comments));
         });
-        return items;
+        return items.stream()
+                .sorted(Comparator.comparing(ItemDto::getId))
+                .collect(Collectors.toList());
     }
 
     @Override
