@@ -18,6 +18,7 @@ import ru.practicum.shareitserver.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import static ru.practicum.shareitserver.item.mapper.ItemMapper.mapToItemDto;
 import static ru.practicum.shareitserver.request.mapper.ItemRequestMapper.mapToItemRequestDto;
@@ -62,8 +63,9 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         User user = checkUser(userId);
         checkParam(from, size);
         Sort sortByCreated = Sort.by(Sort.Direction.ASC, "created");
-        Collection<ItemRequest> itemRequests =
-                itemRequestRepository.findAllByRequestorNotLike(user, PageRequest.of(from / size, size, sortByCreated));
+        Collection<ItemRequest> itemRequests = itemRequestRepository
+                .findAllByRequestorNotLike(user, PageRequest.of(from / size, size, sortByCreated)).stream()
+                .collect(Collectors.toList());;
         Collection<ItemRequestDto> itemRequestDtos = mapToItemRequestDto(itemRequests);
         itemRequestDtos.forEach(this::findItemsForRequest);
 

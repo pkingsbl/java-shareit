@@ -11,6 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import ru.practicum.shareitserver.exception.NotFoundException;
@@ -76,7 +77,7 @@ class ItemRequestServiceImplTest {
         when(itemRequestRepository.findAllByRequestorIdOrderByCreatedAsc(userOwner.getId()))
                 .thenReturn(List.of(itemRequest));
         when(itemRequestRepository.findAllByRequestorNotLike(userOwner, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "created"))))
-                .thenReturn(List.of(itemRequest));
+                .thenReturn(new PageImpl<>(List.of(itemRequest)));
         when(itemRequestRepository.findById(itemRequest.getId()))
                 .thenReturn(Optional.ofNullable(itemRequest));
         when(itemRepository.findAllByRequestId(itemRequest.getId()))
