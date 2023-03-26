@@ -1,11 +1,9 @@
 package ru.practicum.shareitserver.booking.service;
 
-import java.util.Comparator;
 import java.util.Objects;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.time.LocalDateTime;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -98,9 +96,7 @@ public class BookingServiceImpl implements BookingService {
                 bookings.addAll(bookingRepository.findAllByBookerIdAndStatus(userId, Status.REJECTED, pageRequest));
                 break;
         }
-        return bookings.stream()
-                .sorted(Comparator.comparing(Booking::getId))
-                .collect(Collectors.toList());
+        return bookings;
     }
 
     @Override
@@ -130,9 +126,7 @@ public class BookingServiceImpl implements BookingService {
                 bookings.addAll(bookingRepository.findAllByItemOwnerIdAndStatus(userId, Status.REJECTED, pageRequest));
                 break;
         }
-        return bookings.stream()
-                .sorted(Comparator.comparing(Booking::getId))
-                .collect(Collectors.toList());
+        return bookings;
     }
 
     private static void approveStatus(Boolean approved, Booking booking) {
